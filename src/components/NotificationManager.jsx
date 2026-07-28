@@ -2,6 +2,7 @@ import { useEffect, useRef, useState } from 'react'
 import { fmtHt } from '../lib/tide.js'
 import { t } from '../lib/i18n.js'
 import { fetchHourly, conditionsAt } from '../lib/weather.js'
+import { notify, canNotify } from '../lib/notify.js'
 import {
   FIELDS, OPS, LEAD_CHOICES, UNITS, loadRule, saveRule, nextTarget, evaluate, describe,
 } from '../lib/alerts.js'
@@ -57,9 +58,10 @@ export default function NotificationManager({ ex, todaySummary, lang, lat, lon }
       setStatus({ fire: fireAt, tide: target })
       timer.current = setTimeout(() => {
         const kind = target.type === 'high' ? L.high : L.low
-        new Notification(`${kind} — ${L.lowTideSoon}`, {
+        notify(`${kind} — ${L.lowTideSoon}`, {
           body: L.lowTideAt(target.disp, fmtHt(target.m)),
-        })
+          tag: 'tide-alert',
+        }).catch(e => console.warn('tide alert failed:', e))
       }, delay)
     }
 
@@ -76,37 +78,33 @@ export default function NotificationManager({ ex, todaySummary, lang, lat, lon }
     if (typeof Notification === 'undefined') return
     const p = await Notification.requestPermission()
     setPerm(p)
-    if (p === 'granted') new Notification(L.appTitle, { body: todaySummary })
+    if (p === 'granted') notify(L.appTitle, { body: todaySummary }).catch(() => {})
   }
-  const showToday = () => { if (perm === 'granted') new Notification(L.todaysTides, { body: todaySummary }) }
+  const showToday = () => {
+    notify(L.todaysTides, { body: todaySummary, tag: 'tide-summary' })
+      .catch(e => setTestMsg({ ok: false, text: L.testErr(e.message || String(e)) }))
+  }
 
   const fmtClock = ms => new Date(ms).toLocaleTimeString('en-IN',
     { hour: 'numeric', minute: '2-digit', hour12: true, timeZone: 'Asia/Kolkata' })
 
-  // Diagnose rather than fail silently. A Notification fires `show` when the
-  // browser actually displays it and `error` when it cannot, so waiting briefly
-  // on those distinguishes "the API refused" from "the OS swallowed it" —
-  // which is the difference between a code bug and a Windows setting.
-  const runTest = () => {
+  // notify() resolves only once the notification has actually been shown, so
+  // success here is observed rather than assumed — no more guessing from onshow
+  // and a timeout. It also reports which path worked, which is the difference
+  // that mattered: Android only permits the service-worker path.
+  const runTest = async () => {
     setTestMsg(null)
-    if (typeof Notification === 'undefined' || Notification.permission !== 'granted') {
-      setTestMsg({ ok: false, text: L.testNoPerm }); return
-    }
+    if (!canNotify()) { setTestMsg({ ok: false, text: L.testNoPerm }); return }
     const target = nextTarget(ex, { ...rule, enabled: true }, Date.now()) || ex[0]
     if (!target) { setTestMsg({ ok: false, text: L.testNoTide }); return }
 
     const kind = target.type === 'high' ? L.high : L.low
-    let settled = false
     try {
-      const n = new Notification(`${kind} — ${L.lowTideSoon}`, {
+      const via = await notify(`${kind} — ${L.lowTideSoon}`, {
         body: L.lowTideAt(target.disp, fmtHt(target.m)),
         tag: 'tide-test',            // replaces rather than stacks on repeat presses
       })
-      n.onshow = () => { settled = true; setTestMsg({ ok: true, text: L.testShown }) }
-      n.onerror = () => { settled = true; setTestMsg({ ok: false, text: L.testErr('error event') }) }
-      // Chrome on Windows often never fires onshow even when it displays fine,
-      // so treat silence as "sent, unconfirmed" and point at the OS settings.
-      setTimeout(() => { if (!settled) setTestMsg({ ok: true, text: L.testSentUnconfirmed }) }, 1200)
+      setTestMsg({ ok: true, text: via === 'serviceworker' ? L.testShown : L.testShownDesktop })
     } catch (e) {
       setTestMsg({ ok: false, text: L.testErr(e.message || String(e)) })
     }
