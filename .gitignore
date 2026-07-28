@@ -1,0 +1,16 @@
+node_modules
+dist
+.DS_Store
+
+# Secrets. SETUP-SHEETS.md and SETUP-GOOGLE-WEATHER.md both have you put real
+# credentials here (Google service-account private key, Maps API key) — these
+# must never be committed.
+.env
+.env.*
+!.env.example
+
+# netlify dev / netlify-cli working directory
+.netlify
+
+# netlify dev generates this for edge functions; this project has none
+deno.lock

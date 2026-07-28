@@ -1,0 +1,333 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Kannur Tide & Moon — വേലി & ചന്ദ്രൻ</title>
+<style>
+  :root{
+    --bg1:#04121f; --bg2:#0a2540; --card:#0f2c47; --card2:#12354f;
+    --edge:#1d466b; --txt:#e8f3fb; --mut:#8fb2ca; --acc:#37c6ff;
+    --high:#4ad6a0; --low:#ff9f6b; --white:#fff7d6; --black:#4a5a6a;
+  }
+  *{box-sizing:border-box;margin:0;padding:0}
+  body{font-family:-apple-system,"Segoe UI",Roboto,system-ui,sans-serif;
+    background:radial-gradient(1200px 700px at 70% -10%,#0d3355 0%,var(--bg1) 55%);
+    color:var(--txt);min-height:100vh;padding:18px 14px 60px;}
+  .wrap{max-width:980px;margin:0 auto}
+  header{display:flex;flex-wrap:wrap;align-items:center;justify-content:space-between;gap:12px;margin-bottom:6px}
+  h1{font-size:1.5rem;font-weight:700;letter-spacing:.2px}
+  h1 small{display:block;font-size:.8rem;color:var(--mut);font-weight:500;margin-top:2px}
+  .updated{font-size:.75rem;color:var(--mut);text-align:right}
+  #refresh{cursor:pointer;border:1px solid var(--edge);background:var(--card);color:var(--txt);
+    border-radius:10px;padding:8px 14px;font-size:.85rem;margin-top:6px}
+  #refresh:hover{background:var(--card2)}
+  .srcbadge{display:inline-block;font-size:.68rem;font-weight:700;padding:2px 9px;border-radius:20px;margin-top:4px}
+  .srcbadge.accurate{background:rgba(74,214,160,.18);color:var(--high)}
+  .srcbadge.model{background:rgba(255,159,107,.18);color:var(--low)}
+  .grid{display:grid;grid-template-columns:1.1fr 1fr;gap:14px;margin-top:14px}
+  @media(max-width:720px){.grid{grid-template-columns:1fr}}
+  .card{background:var(--card);border:1px solid var(--edge);border-radius:16px;padding:18px}
+  .card h2{font-size:.8rem;text-transform:uppercase;letter-spacing:1.5px;color:var(--mut);margin-bottom:12px}
+  .moonrow{display:flex;align-items:center;gap:18px}
+  .moon{width:96px;height:96px;border-radius:50%;flex:0 0 auto;position:relative;
+    background:#0a1a28;box-shadow:inset 0 0 0 1px #2a4a68,0 0 30px rgba(55,198,255,.15);overflow:hidden}
+  .moon .lit{position:absolute;inset:0;border-radius:50%;
+    background:radial-gradient(circle at 35% 32%,#fffef2,#fff2c2 55%,#e7d59a 100%)}
+  .moon .shadow{position:absolute;inset:0;border-radius:50%;background:#050d16}
+  .phase-name{font-size:1.35rem;font-weight:700}
+  .tag{display:inline-block;font-size:.72rem;padding:3px 10px;border-radius:20px;margin-top:6px;font-weight:600}
+  .tag.white{background:var(--white);color:#3a2f00}
+  .tag.black{background:var(--black);color:#dfeaf3}
+  .moonmeta{font-size:.85rem;color:var(--mut);margin-top:8px;line-height:1.5}
+  .moonmeta b{color:var(--txt)}
+  .tabs{display:flex;flex-wrap:wrap;gap:8px;margin:18px 0 4px}
+  .tab{cursor:pointer;border:1px solid var(--edge);background:var(--card);color:var(--mut);
+    border-radius:20px;padding:7px 14px;font-size:.85rem}
+  .tab.active{background:var(--acc);color:#032033;border-color:var(--acc);font-weight:700}
+  .now{display:flex;gap:22px;flex-wrap:wrap;align-items:flex-end;margin-bottom:14px}
+  .now .lvl{font-size:2rem;font-weight:800;line-height:1}
+  .now .sub{font-size:.8rem;color:var(--mut)}
+  .chip{font-size:.75rem;padding:4px 10px;border-radius:8px;font-weight:700}
+  .chip.rising{background:rgba(74,214,160,.16);color:var(--high)}
+  .chip.falling{background:rgba(255,159,107,.16);color:var(--low)}
+  svg.curve{width:100%;height:120px;display:block;margin:6px 0 4px}
+  .week{margin-top:10px}
+  .day{border-top:1px solid var(--edge);padding:12px 2px}
+  .day:first-child{border-top:none}
+  .day .d-h{display:flex;justify-content:space-between;align-items:center;margin-bottom:8px}
+  .day .d-name{font-weight:700}
+  .day .d-date{font-size:.78rem;color:var(--mut)}
+  .tides{display:flex;flex-wrap:wrap;gap:8px}
+  .tide{display:flex;flex-direction:column;background:var(--card2);border:1px solid var(--edge);
+    border-radius:10px;padding:7px 12px;min-width:96px}
+  .tide .t-type{font-size:.68rem;text-transform:uppercase;letter-spacing:.5px;font-weight:700}
+  .tide.high .t-type{color:var(--high)}
+  .tide.low .t-type{color:var(--low)}
+  .tide .t-time{font-size:1.05rem;font-weight:700;margin-top:2px}
+  .tide .t-ht{font-size:.75rem;color:var(--mut)}
+  .note{font-size:.72rem;color:var(--mut);margin-top:22px;line-height:1.6;text-align:center}
+  .note a{color:var(--acc)}
+  .loading,.error{text-align:center;padding:40px 10px;color:var(--mut)}
+  .error{color:#ff9b9b}
+  .ml{color:var(--mut);font-weight:500}
+</style>
+</head>
+<body>
+<div class="wrap">
+  <header>
+    <div>
+      <h1>Kannur Tide &amp; Moon <small>കണ്ണൂർ വേലിയേറ്റം &amp; ചന്ദ്രക്കല — 7 day forecast</small></h1>
+    </div>
+    <div>
+      <div class="updated" id="updated">Loading…</div>
+      <span class="srcbadge" id="srcBadge"></span><br>
+      <button id="refresh">↻ Refresh</button>
+    </div>
+  </header>
+
+  <div class="grid">
+    <div class="card" id="moonCard">
+      <h2>Moon Phase · ചന്ദ്രദശ</h2>
+      <div class="moonrow">
+        <div class="moon"><div class="lit" id="moonLit"></div><div class="shadow" id="moonShadow"></div></div>
+        <div>
+          <div class="phase-name" id="phaseName">—</div>
+          <span class="tag" id="moonTag">—</span>
+          <div class="moonmeta" id="moonMeta"></div>
+        </div>
+      </div>
+    </div>
+
+    <div class="card">
+      <h2>Now · ഇപ്പോൾ (<span id="nowLoc">—</span>)</h2>
+      <div class="now">
+        <div>
+          <div class="lvl" id="nowLevel">—</div>
+          <div class="sub" id="nowSub">tide height</div>
+        </div>
+        <div><span class="chip" id="nowTrend">—</span></div>
+      </div>
+      <svg class="curve" id="curve" viewBox="0 0 320 120" preserveAspectRatio="none"></svg>
+      <div class="sub" id="nextTide" style="color:var(--mut)"></div>
+    </div>
+  </div>
+
+  <div class="tabs" id="tabs"></div>
+  <div class="card">
+    <h2>7-Day Tides · വേലിയേറ്റം (<span class="ml">high</span>) / വേലിയിറക്കം (<span class="ml">low</span>)</h2>
+    <div id="week" class="week"><div class="loading">Loading tide data…</div></div>
+  </div>
+
+  <p class="note" id="srcNote"></p>
+</div>
+
+<script src="tidedata.js" onerror="window.TIDE_DATA=null"></script>
+<script>
+// ---- Locations (Kannur district, Kerala). Coords used only for the live-model fallback. ----
+const LOCATIONS = [
+  {name:"Kannur",          ml:"കണ്ണൂർ",         lat:11.867, lon:75.355},
+  {name:"Payangadi",       ml:"പയ്യങ്ങാടി",     lat:12.048, lon:75.255},
+  {name:"Madayi",          ml:"മാടായി",         lat:12.032, lon:75.263},
+  {name:"Mattool",         ml:"മാട്ടൂൽ",        lat:11.983, lon:75.225},
+  {name:"Puthiyangadi",    ml:"പുതിയങ്ങാടി",    lat:11.933, lon:75.318},
+  {name:"Chembalikundu",   ml:"ചെമ്പല്ലിക്കുണ്ട്",lat:11.958, lon:75.245},
+  {name:"Payangadi Puzha", ml:"പയ്യങ്ങാടി പുഴ", lat:12.030, lon:75.250},
+  {name:"Palakodu",        ml:"പാലക്കോട്",       lat:11.900, lon:75.330},
+];
+const TZ = 'Asia/Kolkata';
+
+let DATA = [];   // per-location: {loc, ex:[{ts(ms),disp,m,type}]}
+let active = 0;
+let MODE = '';   // 'accurate' | 'model'
+
+// ---------- Moon phase (computed locally) ----------
+const SYNODIC = 29.530588853;
+function toJD(d){ return d.getTime()/86400000 + 2440587.5; }
+function moonInfo(date){
+  let ph = (toJD(date) - 2451550.1) / SYNODIC; ph = ph - Math.floor(ph);
+  const age = ph * SYNODIC;
+  const illum = (1 - Math.cos(2*Math.PI*ph)) / 2;
+  let name, waxing = ph < 0.5;
+  if (age < 1.5 || age > 28.0) name = "New Moon";
+  else if (age < 6.0)  name = "Waxing Crescent";
+  else if (age < 9.0)  name = "First Quarter";
+  else if (age < 13.0) name = "Waxing Gibbous";
+  else if (age < 16.5) name = "Full Moon";
+  else if (age < 20.5) name = "Waning Gibbous";
+  else if (age < 24.0) name = "Last Quarter";
+  else name = "Waning Crescent";
+  return {phase:ph, age, illum, name, waxing};
+}
+function nextPhaseDate(target){
+  const start = new Date(); let bd=9, bt=null;
+  for(let h=1; h<=40*24; h++){
+    const t = new Date(start.getTime()+h*3600000);
+    let ph = (toJD(t)-2451550.1)/SYNODIC; ph = ph-Math.floor(ph);
+    let d = Math.abs(ph-target); d = Math.min(d, 1-d);
+    if(d<bd){bd=d; bt=t;} else if(bd<0.02 && d>bd) break;
+  }
+  return bt;
+}
+function renderMoon(){
+  const m = moonInfo(new Date());
+  document.getElementById('phaseName').textContent = m.name;
+  const isWhite = m.illum > 0.5;
+  const tag = document.getElementById('moonTag');
+  tag.textContent = isWhite ? "🌕 White Moon · വെളുത്ത വാവ്" : "🌑 Black Moon · കറുത്ത വാവ്";
+  tag.className = "tag " + (isWhite ? "white" : "black");
+  const sh = document.getElementById('moonShadow');
+  const k = m.illum, off = (m.waxing ? 1 : -1) * (1-k) * 100;
+  sh.style.transform = `translateX(${off}%)`; sh.style.opacity = (k>0.98)?0:1;
+  const nf = nextPhaseDate(0.5), nn = nextPhaseDate(0.0);
+  const fmt = d => d.toLocaleDateString('en-IN',{weekday:'short',day:'numeric',month:'short',timeZone:TZ});
+  document.getElementById('moonMeta').innerHTML =
+    `Illumination <b>${Math.round(m.illum*100)}%</b> · age <b>${m.age.toFixed(1)}</b> days<br>`+
+    `Next full moon (വെളുത്ത വാവ്): <b>${fmt(nf)}</b><br>`+
+    `Next new moon (കറുത്ത വാവ്): <b>${fmt(nn)}</b>`;
+}
+
+// ---------- Helpers ----------
+function fmtHt(v){ return v.toFixed(2)+' m'; }
+function fmtTime(ts){ return new Date(ts).toLocaleTimeString('en-IN',{hour:'numeric',minute:'2-digit',hour12:true,timeZone:TZ}); }
+function dayKey(ts){ return new Date(ts).toLocaleDateString('en-CA',{timeZone:TZ}); }
+// smooth cosine interpolation between surrounding tide extremes
+function levelAt(ex, tms){
+  if(!ex.length) return null;
+  if(tms<=ex[0].ts) return {m:ex[0].m, rising: ex.length>1 ? ex[1].m>ex[0].m : true};
+  if(tms>=ex[ex.length-1].ts){ const a=ex[ex.length-1]; return {m:a.m, rising:false}; }
+  let i=0; while(i<ex.length-1 && !(ex[i].ts<=tms && tms<ex[i+1].ts)) i++;
+  const a=ex[i], b=ex[i+1], f=(tms-a.ts)/(b.ts-a.ts);
+  return {m:a.m+(b.m-a.m)*(1-Math.cos(Math.PI*f))/2, rising:b.m>a.m};
+}
+
+// ---------- Render ----------
+function renderNow(){
+  const d = DATA[active]; if(!d) return;
+  document.getElementById('nowLoc').textContent = d.loc.name;
+  document.getElementById('nowSub').textContent = MODE==='accurate' ? 'height above chart datum' : 'vs mean sea level';
+  const now = Date.now();
+  const cur = levelAt(d.ex, now);
+  document.getElementById('nowLevel').textContent = cur ? fmtHt(cur.m) : '—';
+  const chip = document.getElementById('nowTrend');
+  chip.textContent = cur && cur.rising ? "▲ Rising · കയറ്റം" : "▼ Falling · ഇറക്കം";
+  chip.className = "chip " + (cur && cur.rising ? "rising" : "falling");
+  const nx = d.ex.find(e=> e.ts>now);
+  document.getElementById('nextTide').textContent = nx
+    ? `Next ${nx.type} tide at ${nx.disp} (${fmtHt(nx.m)})` : '';
+  drawCurve(d.ex);
+}
+function drawCurve(ex){
+  const svg=document.getElementById('curve'); const W=320,H=120;
+  if(!ex.length){svg.innerHTML='';return;}
+  const now=Date.now(), t0=now-3*3600000, t1=now+21*3600000, step=20*60000;
+  const pts=[]; for(let t=t0;t<=t1;t+=step){ const l=levelAt(ex,t); if(l) pts.push([t,l.m]); }
+  const vals=pts.map(p=>p[1]); const mn=Math.min(...vals), mx=Math.max(...vals), rg=(mx-mn)||1;
+  const x=t=>(t-t0)/(t1-t0)*W, y=v=>H-8-((v-mn)/rg)*(H-24);
+  let dline='M'+x(pts[0][0]).toFixed(1)+' '+y(pts[0][1]).toFixed(1);
+  pts.forEach(p=> dline+=` L${x(p[0]).toFixed(1)} ${y(p[1]).toFixed(1)}`);
+  const dsurf=dline+` L${W} ${H} L0 ${H} Z`;
+  const nx=x(now);
+  svg.innerHTML=
+    `<defs><linearGradient id="g" x1="0" y1="0" x2="0" y2="1">
+       <stop offset="0" stop-color="#37c6ff" stop-opacity=".45"/>
+       <stop offset="1" stop-color="#37c6ff" stop-opacity="0"/></linearGradient></defs>
+     <path d="${dsurf}" fill="url(#g)"/>
+     <path d="${dline}" fill="none" stroke="#37c6ff" stroke-width="2"/>
+     <line x1="${nx.toFixed(1)}" y1="0" x2="${nx.toFixed(1)}" y2="${H}" stroke="#fff" stroke-opacity=".4" stroke-dasharray="3 3"/>`;
+}
+function renderWeek(){
+  const d = DATA[active]; if(!d) return;
+  const todayKey = dayKey(Date.now());
+  const byDay = {};
+  d.ex.forEach(e=>{ const k=dayKey(e.ts); if(k<todayKey) return; (byDay[k]=byDay[k]||[]).push(e); });
+  const days = Object.keys(byDay).sort().slice(0,7);
+  const wrap = document.getElementById('week'); wrap.innerHTML='';
+  if(!days.length){ wrap.innerHTML='<div class="error">No tide data available.</div>'; return; }
+  days.forEach(k=>{
+    const ref=byDay[k][0].ts, el=document.createElement('div'); el.className='day';
+    const tiles = byDay[k].map(e=>
+      `<div class="tide ${e.type}"><span class="t-type">${e.type==='high'?'High വേലിയേറ്റം':'Low വേലിയിറക്കം'}</span>
+        <span class="t-time">${e.disp}</span><span class="t-ht">${fmtHt(e.m)}</span></div>`).join('');
+    el.innerHTML=`<div class="d-h">
+        <span class="d-name">${new Date(ref).toLocaleDateString('en-IN',{weekday:'long',timeZone:TZ})}</span>
+        <span class="d-date">${new Date(ref).toLocaleDateString('en-IN',{day:'numeric',month:'long',timeZone:TZ})}</span></div>
+      <div class="tides">${tiles}</div>`;
+    wrap.appendChild(el);
+  });
+}
+function renderTabs(){
+  const t=document.getElementById('tabs'); t.innerHTML='';
+  LOCATIONS.forEach((l,i)=>{
+    const b=document.createElement('div');
+    b.className='tab'+(i===active?' active':'');
+    b.innerHTML=`${l.name} <span class="ml">${l.ml}</span>`;
+    b.onclick=()=>{active=i;renderTabs();renderNow();renderWeek();};
+    t.appendChild(b);
+  });
+}
+function renderAll(){ renderTabs(); renderNow(); renderWeek(); }
+
+// ---------- Data sources ----------
+function buildFromScraped(){
+  const S=window.TIDE_DATA;
+  const ex=[];
+  S.days.forEach(d=> d.tides.forEach(t=> ex.push({
+    ts:t.ts*1000, disp:String(t.t).replace(/\s*(AM|PM)/i,' $1').trim(),
+    m:+t.m, type:/high/i.test(t.type)?'high':'low'
+  })));
+  ex.sort((a,b)=>a.ts-b.ts);
+  DATA = LOCATIONS.map(l=>({loc:l, ex}));
+  MODE='accurate';
+  const when = new Date(S.scrapedAt);
+  document.getElementById('updated').textContent =
+    'Tide data updated '+when.toLocaleDateString('en-IN',{dateStyle:'medium',timeZone:TZ});
+  const bd=document.getElementById('srcBadge'); bd.textContent='✓ Harmonic prediction'; bd.className='srcbadge accurate';
+  document.getElementById('srcNote').innerHTML =
+    `Tide predictions from <a href="${S.sourceUrl}" target="_blank">Tide-Forecast.com</a> `+
+    `for the <b>${S.station}</b> station (harmonic model, heights above local chart datum). `+
+    `All eight nearby spots share this station — they are within ~20&nbsp;km, so tide times differ by only a few minutes. `+
+    `Refreshed automatically each day. Moon phase computed locally. <b>Not for navigation.</b>`;
+  renderMoon(); renderAll();
+}
+async function loadModel(){
+  const bd=document.getElementById('srcBadge'); bd.textContent='~ Live model'; bd.className='srcbadge model';
+  document.getElementById('updated').textContent='Loading…';
+  renderMoon();
+  const lats=LOCATIONS.map(l=>l.lat).join(','), lons=LOCATIONS.map(l=>l.lon).join(',');
+  const url=`https://marine-api.open-meteo.com/v1/marine?latitude=${lats}&longitude=${lons}`+
+    `&hourly=sea_level_height_msl&timezone=Asia%2FKolkata&forecast_days=7&cell_selection=sea&length_unit=metric`;
+  try{
+    const r=await fetch(url); if(!r.ok) throw new Error('HTTP '+r.status);
+    let j=await r.json(); if(!Array.isArray(j)) j=[j];
+    DATA=j.map((o,i)=>{
+      const T=o.hourly.time, Hh=o.hourly.sea_level_height_msl, ex=[];
+      for(let k=1;k<Hh.length-1;k++){
+        const a=Hh[k-1],b=Hh[k],c=Hh[k+1]; if(a==null||b==null||c==null) continue;
+        const ts=new Date(T[k]).getTime();
+        if(b>a&&b>=c) ex.push({ts,disp:fmtTime(ts),m:b,type:'high'});
+        else if(b<a&&b<=c) ex.push({ts,disp:fmtTime(ts),m:b,type:'low'});
+      }
+      return {loc:LOCATIONS[i], ex};
+    });
+    MODE='model';
+    document.getElementById('updated').textContent='Updated '+new Date().toLocaleString('en-IN',{dateStyle:'medium',timeStyle:'short',timeZone:TZ});
+    document.getElementById('srcNote').innerHTML =
+      `Live tide model from <a href="https://open-meteo.com/en/docs/marine-weather-api" target="_blank">Open-Meteo</a> `+
+      `(~8&nbsp;km grid, heights vs global mean sea level). Approximate near coast. Moon phase computed locally. <b>Not for navigation.</b>`;
+    renderAll();
+  }catch(e){
+    document.getElementById('week').innerHTML='<div class="error">Could not load tide data ('+e.message+
+      ').<br>Check your connection and press Refresh.</div>';
+    document.getElementById('updated').textContent='Failed to load';
+  }
+}
+function load(){
+  if(window.TIDE_DATA && window.TIDE_DATA.days && window.TIDE_DATA.days.length) buildFromScraped();
+  else loadModel();
+}
+document.getElementById('refresh').onclick=load;
+load();
+</script>
+</body>
+</html>
