@@ -29,6 +29,16 @@ const json = (status, body) =>
 
 const round = (v, p = 2) => (v == null ? null : Math.round(v * 10 ** p) / 10 ** p)
 
+// Supabase's two key formats need different headers — a legacy JWT ("eyJ...")
+// takes apikey + Authorization: Bearer, while a new "sb_secret_..." key is not a
+// JWT and must go in apikey alone. Handling both means a key rotation between
+// formats does not break reads.
+function supabaseHeaders(key) {
+  const h = { apikey: key }
+  if (key.startsWith('eyJ')) h.authorization = `Bearer ${key}`
+  return h
+}
+
 function summarise(rows, keyFn, label) {
   const groups = new Map()
   for (const r of rows) {
@@ -75,12 +85,7 @@ export default async (req) => {
   try {
     const url = `${SUPABASE_URL.replace(/\/+$/, '')}/rest/v1/catch_reports` +
       `?select=${encodeURIComponent(ANALYSIS_COLUMNS)}&order=created_at.desc&limit=${ROW_CAP}`
-    const res = await fetch(url, {
-      headers: {
-        apikey: SUPABASE_SERVICE_KEY,
-        authorization: `Bearer ${SUPABASE_SERVICE_KEY}`,
-      },
-    })
+    const res = await fetch(url, { headers: supabaseHeaders(SUPABASE_SERVICE_KEY) })
     if (!res.ok) throw new Error(`supabase ${res.status}: ${await res.text()}`)
     rows = await res.json()
   } catch (e) {

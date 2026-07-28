@@ -74,6 +74,18 @@ const safe = v => {
 }
 const num = v => (v === null || v === undefined || v === '' || Number.isNaN(Number(v)) ? null : Number(v))
 
+// Supabase has two key formats and they are NOT interchangeable in headers:
+//   legacy JWT  "eyJ..."        -> apikey + Authorization: Bearer
+//   new secret  "sb_secret_..." -> apikey only; it is not a JWT, so sending it
+//                                  as a Bearer token fails validation
+// Sending the right headers for the key given means rotating from one format to
+// the other does not break the site.
+function supabaseHeaders(key) {
+  const h = { apikey: key, 'content-type': 'application/json' }
+  if (key.startsWith('eyJ')) h.authorization = `Bearer ${key}`
+  return h
+}
+
 export default async (req, context) => {
   if (req.method !== 'POST') return json(405, { error: 'POST only' })
 
@@ -131,12 +143,7 @@ export default async (req, context) => {
     if (supabaseReady) {
       const res = await fetch(`${SUPABASE_URL.replace(/\/+$/, '')}/rest/v1/catch_reports`, {
         method: 'POST',
-        headers: {
-          apikey: SUPABASE_SERVICE_KEY,
-          authorization: `Bearer ${SUPABASE_SERVICE_KEY}`,
-          'content-type': 'application/json',
-          prefer: 'return=minimal',
-        },
+        headers: { ...supabaseHeaders(SUPABASE_SERVICE_KEY), prefer: 'return=minimal' },
         body: JSON.stringify(record),
       })
       if (!res.ok) throw new Error(`supabase ${res.status}: ${await res.text()}`)
