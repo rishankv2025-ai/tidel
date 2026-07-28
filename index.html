@@ -5,6 +5,16 @@
     <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
     <meta name="theme-color" content="#04121f" />
     <title>Tide &amp; Moon</title>
+    <meta name="description" content="Tide times, moon phase, sun and moon rise/set, live sea conditions and catch logging for the Kannur coast. Tides and moon work offline." />
+
+    <!-- PWA. Absolute paths, because the manifest and service worker are resolved
+         against the origin root, not against vite's relative asset base. -->
+    <link rel="manifest" href="/manifest.webmanifest" />
+    <link rel="icon" type="image/png" sizes="192x192" href="/icons/icon-192.png" />
+    <link rel="apple-touch-icon" href="/icons/apple-touch-icon.png" />
+    <meta name="apple-mobile-web-app-capable" content="yes" />
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
+    <meta name="apple-mobile-web-app-title" content="Tide" />
   </head>
   <body>
     <div id="root"></div>

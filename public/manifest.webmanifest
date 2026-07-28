@@ -1,0 +1,60 @@
+{
+  "id": "/",
+  "name": "Tide & Moon",
+  "short_name": "Tide",
+  "description": "Tide times, moon phase, sun and moon rise/set, live sea conditions and catch logging for the Kannur coast. Tides and moon work offline.",
+  "start_url": "/",
+  "scope": "/",
+  "display": "standalone",
+  "orientation": "portrait-primary",
+  "background_color": "#040b16",
+  "theme_color": "#04121f",
+  "lang": "en",
+  "dir": "ltr",
+  "categories": ["weather", "utilities", "travel"],
+  "prefer_related_applications": false,
+  "icons": [
+    {
+      "src": "/icons/icon-192.png",
+      "sizes": "192x192",
+      "type": "image/png",
+      "purpose": "any"
+    },
+    {
+      "src": "/icons/icon-512.png",
+      "sizes": "512x512",
+      "type": "image/png",
+      "purpose": "any"
+    },
+    {
+      "src": "/icons/icon-maskable-512.png",
+      "sizes": "512x512",
+      "type": "image/png",
+      "purpose": "maskable"
+    }
+  ],
+  "screenshots": [
+    {
+      "src": "/screenshots/narrow-1.png",
+      "sizes": "824x1830",
+      "type": "image/png",
+      "form_factor": "narrow",
+      "label": "Tide, moon and sea conditions on a phone"
+    },
+    {
+      "src": "/screenshots/wide-1.png",
+      "sizes": "1920x1200",
+      "type": "image/png",
+      "form_factor": "wide",
+      "label": "Full dashboard with tide, moon, sun and conditions"
+    }
+  ],
+  "shortcuts": [
+    {
+      "name": "Report a catch",
+      "short_name": "Report",
+      "url": "/?report=1",
+      "icons": [{ "src": "/icons/icon-192.png", "sizes": "192x192" }]
+    }
+  ]
+}

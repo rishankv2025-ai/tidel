@@ -6,6 +6,25 @@
   directory = "netlify/functions"
   node_bundler = "esbuild"
 
+# The service worker must never be cached by the CDN or the browser. If it is,
+# a deploy cannot replace it and users stay pinned to an old app indefinitely.
+[[headers]]
+  for = "/sw.js"
+  [headers.values]
+    Cache-Control = "public, max-age=0, must-revalidate"
+
+[[headers]]
+  for = "/manifest.webmanifest"
+  [headers.values]
+    Content-Type = "application/manifest+json"
+    Cache-Control = "public, max-age=3600"
+
+# Build assets are content-hashed, so they are safe to cache forever.
+[[headers]]
+  for = "/assets/*"
+  [headers.values]
+    Cache-Control = "public, max-age=31536000, immutable"
+
 # Redirects are matched in order, so /api/* must come first — otherwise the SPA
 # catch-all below swallows the function route and the POST returns index.html.
 [[redirects]]
