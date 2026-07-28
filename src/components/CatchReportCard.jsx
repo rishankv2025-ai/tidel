@@ -41,7 +41,10 @@ export default function CatchReportCard({ lang, locationLabel, lat, lon, tide, m
       }
       if (!res.ok) {
         const b = await res.json().catch(() => ({}))
-        throw new Error(b.error || `HTTP ${res.status}`)
+        // `detail` carries the provider's own message ("supabase 401: Invalid API
+        // key"), which is the only part that says what to fix. Showing just
+        // `error` left the real cause invisible.
+        throw new Error([b.error, b.detail].filter(Boolean).join(' · ') || `HTTP ${res.status}`)
       }
       setStatus('ok')
       setQty(5); setOther(''); setNotes('')
