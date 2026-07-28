@@ -14,6 +14,7 @@ export default function NotificationManager({ ex, todaySummary, lang, lat, lon }
   const [rule, setRule] = useState(loadRule)
   const [open, setOpen] = useState(false)
   const [status, setStatus] = useState(null)   // null | 'checking' | {fire,tide} | {blocked:[...]}
+  const [testMsg, setTestMsg] = useState(null) // outcome of the "Test now" button
   const timer = useRef(null)
   const L = t(lang)
 
@@ -81,6 +82,35 @@ export default function NotificationManager({ ex, todaySummary, lang, lat, lon }
 
   const fmtClock = ms => new Date(ms).toLocaleTimeString('en-IN',
     { hour: 'numeric', minute: '2-digit', hour12: true, timeZone: 'Asia/Kolkata' })
+
+  // Diagnose rather than fail silently. A Notification fires `show` when the
+  // browser actually displays it and `error` when it cannot, so waiting briefly
+  // on those distinguishes "the API refused" from "the OS swallowed it" —
+  // which is the difference between a code bug and a Windows setting.
+  const runTest = () => {
+    setTestMsg(null)
+    if (typeof Notification === 'undefined' || Notification.permission !== 'granted') {
+      setTestMsg({ ok: false, text: L.testNoPerm }); return
+    }
+    const target = nextTarget(ex, { ...rule, enabled: true }, Date.now()) || ex[0]
+    if (!target) { setTestMsg({ ok: false, text: L.testNoTide }); return }
+
+    const kind = target.type === 'high' ? L.high : L.low
+    let settled = false
+    try {
+      const n = new Notification(`${kind} — ${L.lowTideSoon}`, {
+        body: L.lowTideAt(target.disp, fmtHt(target.m)),
+        tag: 'tide-test',            // replaces rather than stacks on repeat presses
+      })
+      n.onshow = () => { settled = true; setTestMsg({ ok: true, text: L.testShown }) }
+      n.onerror = () => { settled = true; setTestMsg({ ok: false, text: L.testErr('error event') }) }
+      // Chrome on Windows often never fires onshow even when it displays fine,
+      // so treat silence as "sent, unconfirmed" and point at the OS settings.
+      setTimeout(() => { if (!settled) setTestMsg({ ok: true, text: L.testSentUnconfirmed }) }, 1200)
+    } catch (e) {
+      setTestMsg({ ok: false, text: L.testErr(e.message || String(e)) })
+    }
+  }
 
   return (
     <div className="glass pad section">
@@ -174,18 +204,19 @@ export default function NotificationManager({ ex, todaySummary, lang, lat, lon }
             <button className="btn" onClick={addCond} style={{ marginTop: 8 }}>{L.addCondition}</button>
           </div>
 
-          {/* fires the real notification immediately, so you can confirm alerts
-              actually reach you on this device without waiting for a tide */}
+          {/* Fires the real notification immediately so you can confirm alerts
+              reach this device without waiting for a tide.
+              It reports the outcome, because "nothing happened" has three very
+              different causes: the constructor threw, the browser accepted it
+              but the OS suppressed it, or there was no tide to build it from.
+              Without feedback those are indistinguishable. */}
           <div className="fieldrow" style={{ marginBottom: 0 }}>
-            <button
-              className="btn acc"
-              onClick={() => {
-                const target = nextTarget(ex, { ...rule, enabled: true }, Date.now()) || ex[0]
-                if (!target) return
-                const kind = target.type === 'high' ? L.high : L.low
-                new Notification(`${kind} — ${L.lowTideSoon}`, { body: L.lowTideAt(target.disp, fmtHt(target.m)) })
-              }}
-            >{L.testAlert}</button>
+            <button className="btn acc" onClick={runTest}>{L.testAlert}</button>
+            {testMsg && (
+              <div className="hint" style={{ marginTop: 8, color: testMsg.ok ? 'var(--high)' : 'var(--low)' }}>
+                {testMsg.text}
+              </div>
+            )}
           </div>
         </div>
       )}

@@ -132,7 +132,6 @@ export default function App() {
     })
   }
 
-  const gen = new Date(data.generatedAt).toLocaleDateString(localeFor(lang), { day: 'numeric', month: 'short', year: 'numeric' })
   const stationLabel = placeName(lang, selection.label, selection.ml)
 
   // Conditions snapshot attached to a catch report. Deliberately English/canonical
@@ -156,6 +155,11 @@ export default function App() {
           <h1>{L.appTitle}</h1>
           <p>{L.tagline}</p>
         </div>
+        {/* Only the language toggle lives up here now. The source attribution,
+            the "harmonic prediction" badge and the navigation warning were
+            removed from the header at the user's request — the attribution and
+            the navigation warning both remain in the footer, so nothing about
+            provenance or safety is actually lost. */}
         <div className="src">
           <button
             className="langbtn"
@@ -164,12 +168,7 @@ export default function App() {
             lang={otherLang(lang)}
           >
             🌐 {otherLangLabel(lang)}
-          </button><br />
-          <span className="badge">{L.badge}</span><br />
-          {/* srcdetail is reference material, not something you read at the shore —
-              hidden on phones to get the tide above the fold */}
-          <span className="srcdetail">{L.srcLine(data.source, gen)}</span>
-          <b>{L.notForNav}</b>
+          </button>
         </div>
       </div>
 

@@ -36,12 +36,8 @@ export function phaseName(lang, englishName) {
 const DICT = {
   en: {
     // header
-    appTitle: 'Kannur Tide & Moon',
+    appTitle: 'Tide & Moon',
     tagline: 'accurate tide & moon dashboard',
-    badge: '✓ Harmonic prediction',
-    srcLine: (source, gen) =>
-      `${source}. Data through the coming weeks · updated ${gen}. Moon computed locally. `,
-    notForNav: 'Not for navigation.',
     loading: 'Loading…',
     loadFail: e => `Could not load tide data: ${e}`,
 
@@ -138,6 +134,11 @@ const DICT = {
     alertUnknownCond: 'no forecast for this',
     checkingConditions: 'Checking the forecast at that tide…',
     testAlert: 'Test now',
+    testShown: 'Sent, and the browser confirmed it was displayed.',
+    testSentUnconfirmed: 'Sent, but the browser did not confirm it appeared. If you saw nothing, your OS is suppressing notifications for this browser — on Windows check Settings → System → Notifications, and turn off Do not disturb / Focus assist.',
+    testErr: e => `The browser refused to create the notification: ${e}`,
+    testNoTide: 'No matching tide in the loaded data to test with — try “Any tide”.',
+    testNoPerm: 'Permission is not granted in this browser any more. Reload and enable alerts again.',
     ruleDisabled: 'Rule off — no tide alerts will fire.',
     toggleRuleOn: 'Turn rule on',
     toggleRuleOff: 'Turn rule off',
@@ -245,12 +246,8 @@ const DICT = {
 
   ml: {
     // header
-    appTitle: 'കണ്ണൂർ വേലിയേറ്റം & ചന്ദ്രക്കല',
+    appTitle: 'വേലിയേറ്റം & ചന്ദ്രക്കല',
     tagline: 'കൃത്യമായ വേലി & ചന്ദ്ര ഡാഷ്ബോർഡ്',
-    badge: '✓ ഹാർമോണിക് പ്രവചനം',
-    srcLine: (source, gen) =>
-      `${source}. വരുന്ന ആഴ്ചകളിലേക്കുള്ള വിവരം · ${gen}-ന് പുതുക്കി. ചന്ദ്രഗണനം ഉപകരണത്തിൽ തന്നെ. `,
-    notForNav: 'കപ്പൽയാത്രയ്ക്ക് ഉപയോഗിക്കരുത്.',
     loading: 'ലോഡ് ചെയ്യുന്നു…',
     loadFail: e => `വേലി വിവരം ലഭ്യമായില്ല: ${e}`,
 
@@ -341,6 +338,11 @@ const DICT = {
     alertUnknownCond: 'ഇതിന് പ്രവചനമില്ല',
     checkingConditions: 'ആ വേലി സമയത്തെ പ്രവചനം പരിശോധിക്കുന്നു…',
     testAlert: 'ഇപ്പോൾ പരീക്ഷിക്കുക',
+    testShown: 'അയച്ചു, ബ്രൗസർ അത് കാണിച്ചതായി സ്ഥിരീകരിച്ചു.',
+    testSentUnconfirmed: 'അയച്ചു, പക്ഷേ ബ്രൗസർ അത് കാണിച്ചെന്ന് സ്ഥിരീകരിച്ചില്ല. നിങ്ങൾ ഒന്നും കണ്ടില്ലെങ്കിൽ, ഈ ബ്രൗസറിന്റെ അറിയിപ്പുകൾ OS തടയുന്നു — Windows-ൽ Settings → System → Notifications പരിശോധിക്കുക, Do not disturb ഓഫാക്കുക.',
+    testErr: e => `അറിയിപ്പ് ഉണ്ടാക്കാൻ ബ്രൗസർ വിസമ്മതിച്ചു: ${e}`,
+    testNoTide: 'പരീക്ഷിക്കാൻ അനുയോജ്യമായ വേലി വിവരത്തിലില്ല — “ഏത് വേലിയും” തിരഞ്ഞെടുക്കുക.',
+    testNoPerm: 'ഈ ബ്രൗസറിൽ അനുമതി ഇപ്പോൾ ഇല്ല. റീലോഡ് ചെയ്ത് അലേർട്ട് വീണ്ടും ഓണാക്കുക.',
     ruleDisabled: 'നിയമം ഓഫാണ് — വേലി അലേർട്ട് വരില്ല.',
     toggleRuleOn: 'നിയമം ഓണാക്കുക',
     toggleRuleOff: 'നിയമം ഓഫാക്കുക',
