@@ -9,7 +9,7 @@ export default function CatchReportCard({ lang, locationLabel, lat, lon, tide, m
   const L = t(lang)
   const [type, setType] = useState('fish')
   const [other, setOther] = useState('')
-  const [qty, setQty] = useState(5)
+  const [qty, setQty] = useState(0)
   const [notes, setNotes] = useState('')
   const [status, setStatus] = useState(null)   // null | 'sending' | 'ok' | {err}
 
@@ -47,7 +47,7 @@ export default function CatchReportCard({ lang, locationLabel, lat, lon, tide, m
         throw new Error([b.error, b.detail].filter(Boolean).join(' · ') || `HTTP ${res.status}`)
       }
       setStatus('ok')
-      setQty(5); setOther(''); setNotes('')
+      setQty(0); setOther(''); setNotes('')
     } catch (e) {
       setStatus({ err: e.message })
     }
