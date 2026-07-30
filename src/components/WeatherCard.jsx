@@ -1,19 +1,15 @@
 import { useEffect, useState } from 'react'
 import { fetchWeather, compass } from '../lib/weather.js'
-import { t, localeFor } from '../lib/i18n.js'
+import { t } from '../lib/i18n.js'
 
 const n1 = v => (v == null ? '—' : Number(v).toFixed(1))
 const n0 = v => (v == null ? '—' : Math.round(Number(v)))
 
-// Open-Meteo returns a bare local ISO string like "2026-07-27T03:15" (already in
-// Asia/Kolkata because of the timezone param). Render it as a readable clock time
-// rather than dumping the raw ISO at the user.
-function fmtModelTime(iso, lang) {
-  if (!iso) return '—'
-  const d = new Date(iso)
-  if (Number.isNaN(d.getTime())) return iso
-  return d.toLocaleString(localeFor(lang), { day: 'numeric', month: 'short', hour: 'numeric', minute: '2-digit', hour12: true })
-}
+// The provenance footnote (model time, model names, and what the ± means) was
+// removed from this card. The ± figures themselves stay on the humidity and wind
+// values, so the disagreement between models is still visible — just no longer
+// explained here. weather.js still returns observedAt, gridOffsetKm and both
+// spreads; they are data, not display, so restoring the note needs no rewrite.
 
 export default function WeatherCard({ lat, lon, lang, onLoad }) {
   const L = t(lang)
@@ -71,11 +67,6 @@ export default function WeatherCard({ lat, lon, lang, onLoad }) {
               <div className="k">{L.wavePeriod}</div>
               <div className="v">{w.wavePeriod == null ? '—' : <>{n1(w.wavePeriod)} <small>s</small></>}</div>
             </div>
-          </div>
-
-          <div className="hint" style={{ marginTop: 12 }}>
-            {L.modelTime} {fmtModelTime(w.observedAt, lang)} · {L.weatherSrc}
-            {(w.humiditySpread != null || w.windSpread != null) && <><br />{L.spreadNote}</>}
           </div>
         </>
       )}
