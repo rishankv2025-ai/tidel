@@ -76,7 +76,6 @@ export default function WeatherCard({ lat, lon, lang, onLoad }) {
           <div className="hint" style={{ marginTop: 12 }}>
             {L.modelTime} {fmtModelTime(w.observedAt, lang)} · {L.weatherSrc}
             {(w.humiditySpread != null || w.windSpread != null) && <><br />{L.spreadNote}</>}
-            {w.gridOffsetKm != null && <><br />{L.gridOffset(w.gridOffsetKm.toFixed(1))}</>}
           </div>
         </>
       )}
