@@ -113,7 +113,12 @@ const DICT = {
     // dynamic alert rule builder
     alertSettings: 'Alert rule',
     leadTime: 'Warn me',
-    minsBefore: n => `${n} min before`,
+    // Lead times now run to 6 hours, so "360 min before" has to become "6 h before".
+    minsBefore: n => (
+      n < 60 ? `${n} min before`
+        : n % 60 === 0 ? `${n / 60} h before`
+        : `${Math.floor(n / 60)} h ${n % 60} min before`
+    ),
     atTheTide: 'at the tide',
     whichTide: 'Which tide',
     anyTide: 'Any tide',
@@ -133,6 +138,29 @@ const DICT = {
     alertBlocked: 'Conditions do not hold at that tide, so no alert is scheduled:',
     alertUnknownCond: 'no forecast for this',
     checkingConditions: 'Checking the forecast at that tide…',
+    leadLongNote: 'A phone that has been asleep may deliver this a few minutes late.',
+    // push
+    pushOn: 'Alerts arrive even with the app closed.',
+    pushSyncing: 'Registering for alerts…',
+    pushInApp: 'Alerts arrive only while the app is open.',
+    pushIosInstall: 'On iPhone, add this app to your Home Screen first — Safari cannot send alerts from a tab.',
+    pushUnsupported: 'This browser cannot receive alerts while closed.',
+    pushNotConfigured: 'Background alerts are not set up on the server yet — see SETUP-PUSH.md.',
+    pushFail: d => `Could not register for background alerts: ${d}`,
+    pushRetry: 'Try again',
+    // daily summary
+    dailyHead: 'Daily summary',
+    dailyOn: 'Send a summary every day',
+    dailyAt: 'At',
+    dailyFor: 'For',
+    dailyUseSelected: 'Whichever place is selected',
+    dailyClosed: 'Deliver even when the app is closed',
+    dailyLocalOnly: 'Kept on this device only, so it arrives while the app is open.',
+    dailyPushUnavailable: 'Background delivery is unavailable here, so this stays on the device.',
+    dailyNext: when => `Next summary ${when}`,
+    dailyTomorrow: at => `tomorrow at ${at}`,
+    dailyToday: at => `today at ${at}`,
+    dailyBadTime: 'Enter a time between 00:00 and 23:59',
     testAlert: 'Test now',
     testShown: 'Shown. Delivered through the service worker, which is the only path Android allows.',
     testShownDesktop: 'Shown, via the desktop notification API. On Android the service worker handles it instead.',
@@ -317,7 +345,11 @@ const DICT = {
     enableAlerts: 'അലേർട്ട് ഓണാക്കുക',
     alertSettings: 'അലേർട്ട് നിയമം',
     leadTime: 'എപ്പോൾ അറിയിക്കണം',
-    minsBefore: n => `${n} മിനിറ്റ് മുൻപ്`,
+    minsBefore: n => (
+      n < 60 ? `${n} മിനിറ്റ് മുൻപ്`
+        : n % 60 === 0 ? `${n / 60} മണിക്കൂർ മുൻപ്`
+        : `${Math.floor(n / 60)} മണിക്കൂർ ${n % 60} മിനിറ്റ് മുൻപ്`
+    ),
     atTheTide: 'വേലി സമയത്ത്',
     whichTide: 'ഏത് വേലി',
     anyTide: 'ഏത് വേലിയും',
@@ -337,6 +369,29 @@ const DICT = {
     alertBlocked: 'ആ വേലി സമയത്ത് വ്യവസ്ഥകൾ ശരിയല്ല, അതിനാൽ അലേർട്ട് ഇല്ല:',
     alertUnknownCond: 'ഇതിന് പ്രവചനമില്ല',
     checkingConditions: 'ആ വേലി സമയത്തെ പ്രവചനം പരിശോധിക്കുന്നു…',
+    leadLongNote: 'ഫോൺ ഉറങ്ങിക്കിടന്നിരുന്നെങ്കിൽ ഇത് കുറച്ച് മിനിറ്റ് വൈകിയേക്കാം.',
+    // push
+    pushOn: 'ആപ്പ് അടച്ചിരിക്കുമ്പോഴും അറിയിപ്പ് ലഭിക്കും.',
+    pushSyncing: 'അറിയിപ്പുകൾക്ക് രജിസ്റ്റർ ചെയ്യുന്നു…',
+    pushInApp: 'ആപ്പ് തുറന്നിരിക്കുമ്പോൾ മാത്രമേ അറിയിപ്പ് ലഭിക്കും.',
+    pushIosInstall: 'iPhone-ൽ ആദ്യം ഈ ആപ്പ് ഹോം സ്ക്രീനിൽ ചേർക്കുക — Safari ടാബിൽ നിന്ന് അറിയിപ്പ് അയക്കാനാവില്ല.',
+    pushUnsupported: 'ഈ ബ്രൗസറിന് അടച്ചിരിക്കുമ്പോൾ അറിയിപ്പ് ലഭിക്കില്ല.',
+    pushNotConfigured: 'സെർവറിൽ പിന്നണി അറിയിപ്പുകൾ ഇനി ക്രമീകരിച്ചിട്ടില്ല — SETUP-PUSH.md കാണുക.',
+    pushFail: d => `പിന്നണി അറിയിപ്പുകൾക്ക് രജിസ്റ്റർ ചെയ്യാനായില്ല: ${d}`,
+    pushRetry: 'വീണ്ടും ശ്രമിക്കുക',
+    // daily summary
+    dailyHead: 'ദിവസേനയുള്ള വിവരം',
+    dailyOn: 'എല്ലാ ദിവസവും വിവരം അയക്കുക',
+    dailyAt: 'സമയം',
+    dailyFor: 'സ്ഥലം',
+    dailyUseSelected: 'തിരഞ്ഞെടുത്ത സ്ഥലം',
+    dailyClosed: 'ആപ്പ് അടച്ചിരിക്കുമ്പോഴും അയക്കുക',
+    dailyLocalOnly: 'ഈ ഉപകരണത്തിൽ മാത്രം സൂക്ഷിക്കുന്നു, അതിനാൽ ആപ്പ് തുറന്നിരിക്കുമ്പോൾ ലഭിക്കും.',
+    dailyPushUnavailable: 'ഇവിടെ പിന്നണി അയക്കൽ ലഭ്യമല്ല, അതിനാൽ ഇത് ഉപകരണത്തിൽ മാത്രം.',
+    dailyNext: when => `അടുത്ത വിവരം ${when}`,
+    dailyTomorrow: at => `നാളെ ${at}-ന്`,
+    dailyToday: at => `ഇന്ന് ${at}-ന്`,
+    dailyBadTime: '00:00 മുതൽ 23:59 വരെയുള്ള സമയം നൽകുക',
     testAlert: 'ഇപ്പോൾ പരീക്ഷിക്കുക',
     testShown: 'കാണിച്ചു. സർവീസ് വർക്കർ വഴി — Android-ൽ ഇത് മാത്രമേ അനുവദിക്കൂ.',
     testShownDesktop: 'കാണിച്ചു, ഡെസ്ക്ടോപ്പ് രീതിയിൽ. Android-ൽ സർവീസ് വർക്കർ ഇത് കൈകാര്യം ചെയ്യും.',

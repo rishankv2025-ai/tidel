@@ -10,7 +10,11 @@ const KEY = 'tide_alert_rule'
 
 export const FIELDS = ['tideHeight', 'windSpeed', 'windGust', 'waveHeight', 'humidity']
 export const OPS = ['lt', 'gt']
-export const LEAD_CHOICES = [0, 15, 30, 45, 60, 90, 120]
+// Minutes of warning. The hour-scale options only mean anything because the
+// scheduler checks the wall clock rather than trusting one long setTimeout —
+// see NotificationManager. Existing saved rules keep working, since loadRule
+// only validates membership in this list.
+export const LEAD_CHOICES = [0, 15, 30, 45, 60, 90, 120, 180, 240, 300, 360]
 
 export const UNITS = {
   tideHeight: 'm', windSpeed: 'km/h', windGust: 'km/h', waveHeight: 'm', humidity: '%',
@@ -77,4 +81,34 @@ export function describe(rule, L) {
   const when = rule.leadMinutes === 0 ? L.atTheTide : L.minsBefore(rule.leadMinutes)
   const kind = rule.tideType === 'low' ? L.low : rule.tideType === 'high' ? L.high : L.anyTide
   return L.ruleSummary(when, kind, rule.conditions.length)
+}
+
+// ── Which alerts have already gone out ──────────────────────────────────────
+//
+// This has to survive a reload, not just a re-render. The scheduler catches up
+// on alerts whose moment passed while the page was frozen, so without a record
+// a refresh would re-arm the same tide, see that its fire time is behind us,
+// and immediately show the notification again — every reload, until the tide.
+//
+// Keyed by tide timestamp + lead + tide type, so changing the rule legitimately
+// produces a new alert for the same tide.
+
+const FIRED_KEY = 'tide_alert_fired'
+const FIRED_MAX = 20        // a month of tides is ~120; 20 covers any live window
+
+export const firedId = (tide, rule) => `${tide.ts}|${rule.leadMinutes}|${rule.tideType}`
+
+function firedList() {
+  try {
+    const l = JSON.parse(localStorage.getItem(FIRED_KEY) || '[]')
+    return Array.isArray(l) ? l : []
+  } catch { return [] }
+}
+
+export function wasFired(id) { return firedList().includes(id) }
+
+export function markFired(id) {
+  const l = firedList().filter(x => x !== id)
+  l.push(id)
+  try { localStorage.setItem(FIRED_KEY, JSON.stringify(l.slice(-FIRED_MAX))) } catch { /* private mode */ }
 }

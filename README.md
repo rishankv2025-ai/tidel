@@ -73,7 +73,28 @@ Each Tide-Forecast scrape covers ~30 days, so refresh roughly monthly (or to add
 - **In-app alerts** — opt-in browser notifications for today's summary and the next low tide *while the app is open*.
 
 ### Note on notifications
-Web pages can't reliably fire notifications when the browser is **closed** without a push server. This app therefore alerts you while it's open. For true scheduled push when closed, a small backend/push service would be required (out of scope here).
+Two delivery routes, and only one is armed at a time:
+
+- **Web push** — the rule is registered with the server and a Netlify scheduled
+  function sends the notification. This is the only route that works with the app
+  **closed**, which on Android is the normal case: a backgrounded tab is frozen
+  within minutes and then discarded, so an in-page timer never runs until the app
+  is reopened. Needs a VAPID keypair and the Supabase table — see
+  [SETUP-PUSH.md](SETUP-PUSH.md). On iPhone the app must be installed to the Home
+  Screen first.
+- **In-app** — a wall-clock timer, used when push is unavailable. Fires only
+  while the app is open. It re-derives the countdown from `Date.now()` on every
+  wake rather than trusting one long `setTimeout`, because a suspended page
+  resumes a pending timer from where it stopped instead of catching up — which
+  made a 6-hour warning arrive with 30 minutes left, or after the tide.
+
+Lead times run from *at the tide* to **6 hours** before. Because the sender runs
+every 5 minutes, a push lands between its lead time and 5 minutes earlier.
+
+There is also a **daily summary** — today's moon phase and every tide, at a time
+you choose, for an area you choose. It is **device-only by default**: the time
+stays in `localStorage` and nothing is written to the server unless you turn on
+"deliver even when the app is closed". See [SETUP-PUSH.md](SETUP-PUSH.md).
 
 ---
 
@@ -93,9 +114,17 @@ src/
   lib/device.js       random per-device id for catch reports
   components/         LocationBar, TopNavigation, MoonPhaseCard, TideDashboardCard,
                       WeatherCard, ForecastList, CatchReportCard, NotificationManager
+  lib/push.js         registers the browser for web push, keeps the rule in sync
+  lib/daily.js        daily-summary settings + IST time math (localStorage)
+  lib/summary.js      the "today" sentence, shared with the push sender
 netlify/functions/
   weather.mjs         optional Google Weather provider  -> SETUP-GOOGLE-WEATHER.md
   catch-report.mjs    appends catch reports to a Sheet   -> SETUP-SHEETS.md
+  catch-stats.mjs     aggregates for the analysis dashboard
+  push-config.mjs     serves the VAPID public key        -> SETUP-PUSH.md
+  push-subscribe.mjs  stores a subscription + its rule
+  push-send.mjs       cron every 5 min, sends due alerts
+  _supabase.mjs       shared REST helpers for the above
 legacy/               the original single-file version (works with no build)
 ```
 

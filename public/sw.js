@@ -9,7 +9,10 @@
 // Written by hand rather than generated, so there is no precache manifest and
 // nothing depends on build-time asset hashes. Everything is runtime-cached.
 
-const VERSION = 'v1'
+// Bumped when the worker's own behaviour changes, not just the app's assets —
+// v2 adds the push and notificationclick handlers below.
+const VERSION = 'v2'
+const ICON = '/icons/icon-192.png'
 const SHELL = `shell-${VERSION}`     // navigations + hashed build assets
 const DATA = `data-${VERSION}`       // tidedata.json
 const RUNTIME = `runtime-${VERSION}` // third-party GETs (weather)
@@ -162,4 +165,66 @@ self.addEventListener('fetch', event => {
       }
     })())
   }
+})
+
+// ── Push ────────────────────────────────────────────────────────────────────
+//
+// The reason this handler exists: the page cannot alert you when it is closed.
+// Android freezes a backgrounded tab within minutes and then discards it, so an
+// in-page timer only ever fired when the app was reopened. A push message wakes
+// the service worker instead, which runs with no page at all.
+//
+// showNotification() is MANDATORY here. The subscription is created with
+// userVisibleOnly:true, and a push that ends without showing anything makes the
+// browser display its own "site updated in the background" notice — and revoke
+// the permission after repeat offences. So every branch below shows something,
+// including the one where the payload failed to parse.
+self.addEventListener('push', event => {
+  event.waitUntil((async () => {
+    let d = {}
+    try {
+      d = event.data ? event.data.json() : {}
+    } catch {
+      // Not JSON. Better a bare notification than a silent push.
+      d = { body: (() => { try { return event.data.text() } catch { return '' } })() }
+    }
+    await self.registration.showNotification(d.title || 'Tide & Moon', {
+      body: d.body || '',
+      icon: ICON,
+      badge: ICON,
+      // Same tag as the in-app alert, so the two can never stack into duplicates
+      // if a device happens to be awake when the push lands.
+      tag: d.tag || 'tide-alert',
+      renotify: true,
+      vibrate: [120, 60, 120],
+      data: { url: d.url || '/' },
+    })
+  })())
+})
+
+// Focus an existing window rather than opening a second copy of the app.
+self.addEventListener('notificationclick', event => {
+  event.notification.close()
+  const target = event.notification.data?.url || '/'
+  event.waitUntil((async () => {
+    const all = await self.clients.matchAll({ type: 'window', includeUncontrolled: true })
+    for (const c of all) {
+      // Any window on this origin will do — the app is a single view.
+      if (new URL(c.url).origin === self.location.origin) {
+        await c.focus()
+        if ('navigate' in c && new URL(c.url).pathname !== target) {
+          try { await c.navigate(target) } catch { /* focus alone is enough */ }
+        }
+        return
+      }
+    }
+    await self.clients.openWindow(target)
+  })())
+})
+
+// A push service may retire a subscription on its own (key rotation, long
+// inactivity). The page re-subscribes on next open; nothing useful can be done
+// from here without the VAPID public key, so just make the loss visible.
+self.addEventListener('pushsubscriptionchange', () => {
+  console.warn('push subscription changed — the app will re-register on next open')
 })

@@ -218,6 +218,19 @@ html[lang="ml"] .fctitle{letter-spacing:normal;text-transform:none;font-size:.78
 .condrow .btn{padding:9px 12px;min-height:0}
 .cunit{font-size:.78rem;color:var(--mut);min-width:34px}
 .rulebox input[type=checkbox]{width:20px;height:20px;accent-color:var(--acc)}
+
+/* daily summary block — a second schedule inside the same panel, so it needs a
+   visible boundary or it reads as more conditions on the tide rule above */
+.dailybox{margin-top:16px;padding-top:14px;border-top:1px solid var(--stroke)}
+.dailybox .k{font-size:.68rem;color:var(--mut);text-transform:uppercase;
+  letter-spacing:.6px;margin-bottom:9px}
+html[lang="ml"] .dailybox .k{letter-spacing:normal;text-transform:none;font-size:.74rem}
+.chk{display:flex;align-items:center;gap:9px;font-size:.86rem;cursor:pointer;
+  min-height:34px;line-height:1.35}
+.chk input[type=checkbox]{flex:0 0 auto}
+.chk input[type=checkbox]:disabled{opacity:.45}
+/* the time input sizes to its content, unlike the full-width condition fields */
+.dtime{flex:0 1 140px;min-width:120px}
 .notif .msg{font-size:.82rem;color:var(--mut);flex:1 1 240px}
 .foot{font-size:.72rem;color:var(--dim);text-align:center;margin-top:26px;line-height:1.7}
 .section{margin-top:16px}

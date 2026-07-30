@@ -1,9 +1,10 @@
 import { useEffect, useMemo, useState } from 'react'
 import { moonInfo } from './lib/moon.js'
 import {
-  stationExtremes, heightRange, availableDays, dayKey, extremesForDay, levelAt,
+  stationExtremes, heightRange, availableDays, dayKey, levelAt,
 } from './lib/tide.js'
-import { t, localeFor, otherLang, otherLangLabel, placeName, phaseName } from './lib/i18n.js'
+import { t, otherLang, otherLangLabel, placeName } from './lib/i18n.js'
+import { todaySummary as summaryText } from './lib/summary.js'
 import LocationBar from './components/LocationBar.jsx'
 import TopNavigation from './components/TopNavigation.jsx'
 import MoonPhaseCard from './components/MoonPhaseCard.jsx'
@@ -107,13 +108,9 @@ export default function App() {
   const refTs = isToday ? Date.now() : new Date(effKey + 'T12:00:00').getTime()
   const moonDate = new Date(effKey + 'T12:00:00')
 
-  const todayKey = dayKey(Date.now())
-  const tt = extremesForDay(ex, todayKey)
-  const todaySummary =
-    `${phaseName(lang, moonInfo(new Date()).name)}. ` +
-    (tt.length
-      ? tt.map(x => `${x.type === 'high' ? L.high : L.low} ${x.disp}`).join('  ·  ')
-      : L.noTideToday)
+  // Shared with the daily alert and with the server-sent push, so all three
+  // read identically — see src/lib/summary.js.
+  const todaySummary = summaryText(ex, lang)
 
   // Toggle any place in or out of favourites. Called both by the ☆ button (for
   // the current selection) and by the star on each search result.
@@ -214,7 +211,21 @@ export default function App() {
 
       {dashOpen && <CatchDashboard lang={lang} onClose={() => setDashOpen(false)} />}
 
-      <NotificationManager ex={ex} todaySummary={todaySummary} lang={lang} lat={coords.lat} lon={coords.lon} />
+      {/* stationId travels too: push alerts are sent by the server, which needs
+          to know which station's tide table to read for this device. spots,
+          stations and tides are for the daily summary's own area picker, which
+          can point somewhere other than the place on screen. */}
+      <NotificationManager
+        ex={ex}
+        todaySummary={todaySummary}
+        lang={lang}
+        lat={coords.lat}
+        lon={coords.lon}
+        stationId={selection.stationId}
+        spots={data.spots}
+        stations={data.stations}
+        tides={data.tides}
+      />
 
       <div className="foot">
         {L.footLine1}<br />
