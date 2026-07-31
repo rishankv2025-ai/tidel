@@ -330,3 +330,48 @@ html[lang="ml"] .tile{min-width:118px}
 .tile .nd{display:block;font-size:.6rem;color:var(--acc);font-style:normal;
   font-weight:700;letter-spacing:.3px;margin-top:1px}
 html[lang="ml"] .tile .nd{letter-spacing:normal;font-size:.66rem}
+
+/* ── per-report line chart ────────────────────────────────────────────────
+   One series, so no legend: the heading names it. Y starts at zero because the
+   distance from zero IS the catch weight; a truncated axis would exaggerate
+   every difference. Grid and axis stay recessive so the line dominates. */
+.lc{margin-top:6px}
+.lcsvg{width:100%;height:auto;display:block;overflow:visible;touch-action:manipulation}
+.lcgrid{stroke:var(--stroke);stroke-width:1}
+.lctick{fill:var(--dim);font-size:11px;font-variant-numeric:tabular-nums}
+.lcaxis{fill:var(--mut);font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:.5px}
+.lcline{fill:none;stroke:var(--acc);stroke-width:2;stroke-linejoin:round;stroke-linecap:round}
+.lcpt{cursor:pointer}
+/* the finger target, not the mark: a 9px dot is unhittable on a phone */
+.lchit{fill:transparent}
+.lcdot{fill:var(--acc);stroke:#0a1d33;stroke-width:2;transition:r .12s ease}
+.lcpt:hover .lcdot{fill:#fff}
+.lcpt.on .lcdot{fill:#fff;stroke:var(--acc2);stroke-width:3}
+
+/* selected-report detail */
+.rdetail{margin-top:14px;padding:14px;border-radius:14px;
+  background:var(--glass2);border:1px solid var(--stroke2)}
+
+/* "when is the catch biggest" */
+.biggest{margin-top:20px;padding-top:16px;border-top:1px solid var(--stroke)}
+.bigrow{display:flex;align-items:baseline;gap:10px;padding:7px 0;border-bottom:1px solid var(--stroke)}
+.bigrow:last-of-type{border-bottom:none}
+.bigk{flex:0 0 108px;font-size:.68rem;color:var(--mut);text-transform:uppercase;letter-spacing:.6px}
+.bigv{flex:1 1 auto;font-weight:700;font-size:.92rem;min-width:0}
+.bign{flex:0 0 auto;font-weight:800;font-variant-numeric:tabular-nums}
+.bign small{font-size:.7rem;color:var(--mut);font-weight:600}
+.bign em{display:block;font-style:normal;font-size:.64rem;color:var(--dim);font-weight:600;text-align:right}
+html[lang="ml"] .bigk{letter-spacing:normal;text-transform:none;font-size:.74rem;flex-basis:132px}
+
+/* report table */
+.dtable td.nowrap{white-space:nowrap}
+.dtable td.mono{font-family:ui-monospace,Menlo,Consolas,monospace;font-size:.74rem}
+.dtable tbody tr{cursor:pointer}
+.dtable tbody tr:hover{background:var(--glass2)}
+.dtable tr.selrow{background:rgba(63,208,255,.10)}
+
+@media (max-width:560px){
+  .bigk{flex-basis:100%}
+  .bigrow{flex-wrap:wrap;gap:4px}
+  .bign{margin-left:auto}
+}

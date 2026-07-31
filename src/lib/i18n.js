@@ -235,6 +235,25 @@ const DICT = {
     submitNoServer: 'The save endpoint isn’t running. Start the app with “npm run dev:api” (netlify dev) instead of “npm run dev”.',
     reportHint: 'Saved together with the current tide, moon and weather, so the catch can be analysed against conditions.',
 
+    // per-report line chart + detail + table
+    dashEveryReport: 'Every report',
+    dashAxisKg: 'kg',
+    dashPickPoint: 'Tap any point to see that report',
+    dashReportN: n => `Report #${n}`,
+    dashWhen: 'Reported',
+    dashDevice: 'Device',
+    dashPlace: 'Place',
+    dashCaught: 'Caught',
+    dashQty: 'Quantity',
+    dashNotes: 'Notes',
+    dashConditions: 'Conditions at that moment',
+    dashCloseDetail: 'Close',
+    dashBiggest: 'When the catch is biggest',
+    dashBiggestNone: minN =>
+      `Not enough reports yet. A condition needs ${minN} reports before it can be called a pattern.`,
+    dashBiggestLead: 'Highest average catch so far, by condition:',
+    dashNoData: 'no data',
+
     // catch analysis dashboard
     openDash: '📊 Open analysis',
     closeDash: '✕ Close analysis',
@@ -463,6 +482,25 @@ const DICT = {
     submitFail: e => `സേവ് ചെയ്യാനായില്ല: ${e}`,
     submitNoServer: 'സേവ് ചെയ്യുന്ന സെർവർ പ്രവർത്തിക്കുന്നില്ല. “npm run dev” എന്നതിന് പകരം “npm run dev:api” ഉപയോഗിച്ച് ആപ്പ് തുടങ്ങുക.',
     reportHint: 'ഇപ്പോഴത്തെ വേലി, ചന്ദ്രദശ, കാലാവസ്ഥ എന്നിവയോടൊപ്പം സേവ് ചെയ്യുന്നു, അതിനാൽ സാഹചര്യങ്ങളുമായി താരതമ്യം ചെയ്ത് പഠിക്കാം.',
+
+    // per-report line chart + detail + table
+    dashEveryReport: 'എല്ലാ റിപ്പോർട്ടുകളും',
+    dashAxisKg: 'കി.ഗ്രാം',
+    dashPickPoint: 'ഏതെങ്കിലും പോയിന്റിൽ ടാപ്പ് ചെയ്ത് ആ റിപ്പോർട്ട് കാണുക',
+    dashReportN: n => `റിപ്പോർട്ട് #${n}`,
+    dashWhen: 'രേഖപ്പെടുത്തിയത്',
+    dashDevice: 'ഉപകരണം',
+    dashPlace: 'സ്ഥലം',
+    dashCaught: 'കിട്ടിയത്',
+    dashQty: 'അളവ്',
+    dashNotes: 'കുറിപ്പ്',
+    dashConditions: 'അപ്പോഴത്തെ സാഹചര്യങ്ങൾ',
+    dashCloseDetail: 'അടയ്ക്കുക',
+    dashBiggest: 'എപ്പോഴാണ് കൂടുതൽ കിട്ടുന്നത്',
+    dashBiggestNone: minN =>
+      `ഇതുവരെ മതിയായ റിപ്പോർട്ടുകളില്ല. ഒരു സാഹചര്യം ഒരു രീതിയാകാൻ ${minN} റിപ്പോർട്ട് വേണം.`,
+    dashBiggestLead: 'ഇതുവരെ ഏറ്റവും ഉയർന്ന ശരാശരി, സാഹചര്യം അനുസരിച്ച്:',
+    dashNoData: 'വിവരമില്ല',
 
     // catch analysis dashboard
     openDash: '📊 വിശകലനം കാണുക',

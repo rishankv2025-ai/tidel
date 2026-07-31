@@ -11,7 +11,8 @@
 //  3. Payload. Aggregating here sends a few dozen numbers instead of every row.
 
 const ANALYSIS_COLUMNS = [
-  'created_at', 'quantity_kg', 'catch_type', 'location_label',
+  'id', 'created_at', 'quantity_kg', 'catch_type', 'catch_other', 'notes', 'device_id',
+  'location_label',
   'tide_state', 'tide_height_m', 'moon_phase', 'moon_illum_pct',
   'wind_kmh', 'wave_height_m', 'humidity_pct',
 ].join(',')
@@ -124,6 +125,28 @@ export default async (req) => {
   return json(200, {
     configured: true,
     total: rows.length,
+    // Individual reports, oldest first, for the per-report line chart and the
+    // detail table. Deliberately still no `ip` column: aggregates never needed
+    // it and neither does the UI, so the one piece of personal data in the
+    // table never leaves the database.
+    rows: [...rows].reverse().map(r => ({
+      id: r.id,
+      at: r.created_at,
+      kg: Number(r.quantity_kg),
+      type: r.catch_type,
+      other: r.catch_other || '',
+      notes: r.notes || '',
+      // shortened purely for display; the full value stays in the database
+      device: r.device_id ? String(r.device_id).slice(0, 8) : '',
+      place: r.location_label || '',
+      tideState: r.tide_state || '',
+      tideHeight: r.tide_height_m == null ? null : Number(r.tide_height_m),
+      moon: r.moon_phase || '',
+      moonIllum: r.moon_illum_pct == null ? null : Number(r.moon_illum_pct),
+      wind: r.wind_kmh == null ? null : Number(r.wind_kmh),
+      wave: r.wave_height_m == null ? null : Number(r.wave_height_m),
+      humidity: r.humidity_pct == null ? null : Number(r.humidity_pct),
+    })),
     overallAvg: round(overallAvg),
     minN: MIN_N,
     // how many reports are still needed before any factor is readable
