@@ -384,3 +384,13 @@ html[lang="ml"] .bigk{letter-spacing:normal;text-transform:none;font-size:.74rem
 
 /* with the disclaimer above it gone, the credit no longer needs a separator */
 .credit.nodivider{margin-top:0;padding-top:0;border-top:none}
+
+/* admin panel */
+.btn.danger{border-color:rgba(255,157,107,.45);color:var(--low)}
+.btn.danger:hover{border-color:var(--low);background:rgba(255,157,107,.12);color:#ffd9c4}
+.btn.tiny{padding:5px 9px;font-size:.74rem;min-height:0;margin-right:5px}
+.editgrid{display:grid;grid-template-columns:repeat(auto-fit,minmax(190px,1fr));gap:10px 14px}
+.editgrid .fieldrow{margin-bottom:0}
+.editgrid .k{text-transform:none;letter-spacing:normal;font-family:ui-monospace,Menlo,Consolas,monospace;font-size:.68rem}
+.dtable input[type=checkbox]{width:18px;height:18px;accent-color:var(--acc);cursor:pointer}
+@media (max-width:560px){ .editgrid{grid-template-columns:1fr} }
