@@ -381,3 +381,6 @@ html[lang="ml"] .bigk{letter-spacing:normal;text-transform:none;font-size:.74rem
 .credit{margin-top:14px;padding-top:12px;border-top:1px solid var(--stroke)}
 .madeby{font-size:.78rem;color:var(--mut);font-weight:600}
 .copy{font-size:.7rem;color:var(--dim);margin-top:3px}
+
+/* with the disclaimer above it gone, the credit no longer needs a separator */
+.credit.nodivider{margin-top:0;padding-top:0;border-top:none}

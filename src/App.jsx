@@ -227,10 +227,12 @@ export default function App() {
         tides={data.tides}
       />
 
+      {/* The source attribution and the "not for navigation" line were removed
+          from the footer at the user's request; the credit is all that remains.
+          The footLine* strings are kept in i18n so restoring them needs no
+          rewrite, same as the conditions-card footnote. */}
       <div className="foot">
-        {L.footLine1}<br />
-        {L.footLine2a}<b>{L.footLine2b}</b>.
-        <div className="credit">
+        <div className="credit nodivider">
           <div className="madeby">{L.createdBy}</div>
           <div className="copy">{L.copyright}</div>
         </div>
