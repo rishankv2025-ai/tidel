@@ -375,3 +375,9 @@ html[lang="ml"] .bigk{letter-spacing:normal;text-transform:none;font-size:.74rem
   .bigrow{flex-wrap:wrap;gap:4px}
   .bign{margin-left:auto}
 }
+
+/* footer credit — separated from the data disclaimer by a hairline so the
+   "not for navigation" warning above it is not read as part of the credit */
+.credit{margin-top:14px;padding-top:12px;border-top:1px solid var(--stroke)}
+.madeby{font-size:.78rem;color:var(--mut);font-weight:600}
+.copy{font-size:.7rem;color:var(--dim);margin-top:3px}

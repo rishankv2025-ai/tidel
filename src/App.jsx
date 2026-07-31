@@ -230,6 +230,10 @@ export default function App() {
       <div className="foot">
         {L.footLine1}<br />
         {L.footLine2a}<b>{L.footLine2b}</b>.
+        <div className="credit">
+          <div className="madeby">{L.createdBy}</div>
+          <div className="copy">{L.copyright}</div>
+        </div>
       </div>
     </div>
   )

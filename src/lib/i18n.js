@@ -291,6 +291,10 @@ const DICT = {
     footLine1: 'Tide predictions via Tide-Forecast.com (harmonic model, local chart datum) · Moon phase computed on-device.',
     footLine2a: 'Heights are approximate near shore and ',
     footLine2b: 'must not be used for navigation',
+    // credit + copyright. The year is a fixed literal, not new Date(), because a
+    // notice that silently changes year is not a claim anyone made.
+    createdBy: 'Website created by Karnnan',
+    copyright: '© 2027 Karnnan. All rights reserved.',
   },
 
   ml: {
@@ -538,6 +542,8 @@ const DICT = {
     footLine1: 'വേലി പ്രവചനം Tide-Forecast.com വഴി (ഹാർമോണിക് മോഡൽ, പ്രാദേശിക ചാർട്ട് ഡാറ്റം) · ചന്ദ്രദശ ഉപകരണത്തിൽ ഗണിച്ചത്.',
     footLine2a: 'തീരത്തിനടുത്ത് ഉയരങ്ങൾ ഏകദേശമാണ്, ',
     footLine2b: 'കപ്പൽയാത്രയ്ക്ക് ഉപയോഗിക്കരുത്',
+    createdBy: 'വെബ്‌സൈറ്റ് നിർമ്മിച്ചത് കർണ്ണൻ',
+    copyright: '© 2027 കർണ്ണൻ. എല്ലാ അവകാശങ്ങളും നിക്ഷിപ്തം.',
   },
 }
 
