@@ -99,6 +99,8 @@ const DICT = {
     filterHigh: 'High only',
     filterLow: 'Low only',
     noTidesFiltered: f => `No ${f} tides this day`,
+    // marks a tile borrowed from the following day to fill a 3-tide row
+    nextDay: 'next day',
 
     // station without data
     // rendered after a bold station label, so it starts mid-sentence
@@ -333,6 +335,7 @@ const DICT = {
     filterHigh: 'വേലിയേറ്റം മാത്രം',
     filterLow: 'വേലിയിറക്കം മാത്രം',
     noTidesFiltered: f => `ഈ ദിവസം ${f} വേലിയില്ല`,
+    nextDay: 'അടുത്ത ദിവസം',
 
     // station without data
     notLoadedRest:
