@@ -291,15 +291,20 @@ export default function NotificationManager({
     if (push === 'syncing') return { text: L.pushSyncing, tone: 'mut' }
     if (pushOn) return { text: L.pushOn, tone: 'good' }
     if (!push) return null
+    // The server not having push configured is a deployment fact, not something
+    // an end user can act on — and "see SETUP-PUSH.md" is a message for whoever
+    // runs the site, not for someone standing on a beach. Say nothing in that
+    // case; the alert rule below still describes what will happen. The strings
+    // stay in i18n so restoring the line is a one-line change.
+    if (['not-configured', 'no-store', 'no-function'].includes(push.reason)) return null
+
     const map = {
-      'ios-install': L.pushIosInstall,
-      unsupported: L.pushUnsupported,
-      'not-configured': L.pushNotConfigured,
-      'no-store': L.pushNotConfigured,
-      'no-function': L.pushNotConfigured,
+      'ios-install': L.pushIosInstall,   // actionable: add to Home Screen
+      unsupported: L.pushUnsupported,    // actionable: this browser cannot
     }
-    // A known limitation is stated plainly; an actual failure names itself and
-    // offers a retry, because "alerts only while open" would hide a broken key.
+    // A limitation the user can act on is stated plainly; an actual failure
+    // names itself and offers a retry, because staying silent there would hide
+    // a broken key.
     if (map[push.reason]) return { text: `${map[push.reason]} ${L.pushInApp}`, tone: 'mut' }
     return { text: L.pushFail(push.detail || push.reason), tone: 'bad', retry: true }
   }
