@@ -280,6 +280,7 @@ const DICT = {
     admCreating: 'New report',
     admIp: 'IP',
     admRefresh: 'Refresh',
+    admDocs: '📖 Documentation',
 
     // per-report line chart + detail + table
     dashEveryReport: 'Every report',
@@ -577,6 +578,7 @@ const DICT = {
     admCreating: 'പുതിയ റിപ്പോർട്ട്',
     admIp: 'IP',
     admRefresh: 'പുതുക്കുക',
+    admDocs: '📖 ഡോക്യുമെന്റേഷൻ',
 
     // per-report line chart + detail + table
     dashEveryReport: 'എല്ലാ റിപ്പോർട്ടുകളും',

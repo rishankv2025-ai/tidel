@@ -197,6 +197,9 @@ export default function AdminPanel({ lang }) {
               </button>
             ))}
             <button className="btn" onClick={() => load()} disabled={busy}>{L.admRefresh}</button>
+            {/* Static page rather than a route: it is a long document that has no
+                business in the app bundle, and a new tab keeps the panel open. */}
+            <a className="btn" href="/docs.html" target="_blank" rel="noopener">{L.admDocs}</a>
             {/* seed the required fields so the form's shown value matches its
                 state — an empty catch_type renders as "fish" in the select while
                 actually being '', which is how new rows used to fail validation */}

@@ -249,8 +249,12 @@ html[lang="ml"] .dailybox .k{letter-spacing:normal;text-transform:none;font-size
   .app{padding:14px 12px 56px}
   .pad{padding:14px}
 
-  /* header: one left-aligned column; badge + language + warning share a row */
-  .top{flex-direction:column;gap:6px}
+  /* Header on one row: title left, language button right. It used to stack,
+     which cost a whole row of vertical space on a 360px phone for a single
+     button — and .src holds nothing else now that the attribution is gone. */
+  .top{flex-direction:row;align-items:flex-start;justify-content:space-between;gap:10px;flex-wrap:nowrap}
+  .brand{flex:1 1 auto;min-width:0}
+  .src{flex:0 0 auto;justify-content:flex-end}
   .brand h1{font-size:1.24rem;line-height:1.22}
   .brand p{font-size:.75rem}
   .src{text-align:left;max-width:none;font-size:.7rem;
@@ -432,3 +436,8 @@ html[lang="ml"] .mnh{letter-spacing:normal;text-transform:none;font-size:.7rem}
 .mnnum{font-size:1rem;font-weight:800;text-align:right;font-variant-numeric:tabular-nums;
   min-width:64px;white-space:nowrap}
 .mnnum small{font-size:.68rem;color:var(--mut);font-weight:600}
+
+/* the docs link is an <a> styled as a button, so it needs the button's own
+   text-decoration and colour reset */
+a.btn{text-decoration:none}
+a.btn:hover{text-decoration:none}

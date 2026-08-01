@@ -1,0 +1,451 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Tide &amp; Moon — technical documentation</title>
+<style>
+  :root{
+    --bg1:#040b16; --bg2:#0a1d33; --glass:rgba(18,44,71,.55); --glass2:rgba(24,56,86,.5);
+    --stroke:rgba(120,180,225,.18); --stroke2:rgba(120,180,225,.30);
+    --txt:#eaf4fc; --mut:#93b4cf; --dim:#6f92ae;
+    --acc:#3fd0ff; --acc2:#7c5cff; --high:#4ade9f; --low:#ff9d6b;
+  }
+  *{box-sizing:border-box;margin:0;padding:0}
+  body{
+    font-family:-apple-system,"Segoe UI",Roboto,system-ui,sans-serif;color:var(--txt);
+    background:radial-gradient(1100px 620px at 78% -12%,#123b63 0%,rgba(18,59,99,0) 60%),
+      radial-gradient(900px 600px at 8% 8%,#23205a 0%,rgba(35,32,90,0) 55%),
+      linear-gradient(160deg,var(--bg2),var(--bg1));
+    background-attachment:fixed;-webkit-font-smoothing:antialiased;line-height:1.65;
+  }
+  .wrap{max-width:900px;margin:0 auto;padding:28px 18px 80px}
+  h1{font-size:1.9rem;font-weight:800;letter-spacing:.2px;
+    background:linear-gradient(90deg,#eaf4fc,#8fd6ff);-webkit-background-clip:text;background-clip:text;color:transparent}
+  .sub{color:var(--mut);font-size:.9rem;margin-top:4px}
+  h2{font-size:1.15rem;margin:34px 0 10px;color:#fff;border-top:1px solid var(--stroke);padding-top:22px}
+  h2:first-of-type{border-top:none}
+  h3{font-size:.95rem;margin:20px 0 6px;color:var(--acc)}
+  p,li{font-size:.92rem;color:#dbe9f6}
+  ul,ol{margin:8px 0 8px 20px}
+  li{margin:3px 0}
+  code{font-family:ui-monospace,Menlo,Consolas,monospace;font-size:.85em;
+    background:rgba(120,180,225,.12);padding:1px 5px;border-radius:5px;color:#bfe6ff;
+    /* a long inline sample (a JSON record) otherwise pushes the page sideways */
+    overflow-wrap:anywhere;word-break:break-word}
+  pre{background:rgba(8,18,32,.75);border:1px solid var(--stroke);border-radius:12px;
+    padding:12px 14px;overflow-x:auto;margin:10px 0;font-size:.82rem;line-height:1.55}
+  pre code{background:none;padding:0;color:#cfe6f7}
+  table{width:100%;border-collapse:collapse;margin:10px 0;font-size:.86rem}
+  th,td{text-align:left;padding:8px 10px;border-bottom:1px solid var(--stroke);vertical-align:top}
+  th{color:var(--mut);font-size:.72rem;text-transform:uppercase;letter-spacing:.7px;font-weight:700}
+  .card{background:var(--glass);border:1px solid var(--stroke);border-radius:16px;padding:16px 18px;margin:14px 0}
+  .warn{background:rgba(255,157,107,.10);border:1px solid rgba(255,157,107,.32);
+    border-radius:12px;padding:12px 14px;margin:12px 0;font-size:.88rem;color:#ffd9c4}
+  .ok{background:rgba(74,222,159,.10);border:1px solid rgba(74,222,159,.30);
+    border-radius:12px;padding:12px 14px;margin:12px 0;font-size:.88rem;color:#c9f5e2}
+  .tag{display:inline-block;font-size:.66rem;font-weight:800;padding:2px 8px;border-radius:20px;
+    letter-spacing:.4px;text-transform:uppercase;vertical-align:middle;margin-left:6px}
+  .t-live{background:rgba(63,208,255,.18);color:var(--acc)}
+  .t-static{background:rgba(255,157,107,.18);color:var(--low)}
+  .t-calc{background:rgba(74,222,159,.16);color:var(--high)}
+  .t-user{background:rgba(124,92,255,.22);color:#c3b5ff}
+  nav{background:var(--glass2);border:1px solid var(--stroke);border-radius:14px;padding:14px 18px;margin:18px 0 6px}
+  nav a{color:var(--acc);text-decoration:none;font-size:.86rem;display:inline-block;margin:3px 14px 3px 0}
+  nav a:hover{text-decoration:underline}
+  .foot{margin-top:40px;padding-top:18px;border-top:1px solid var(--stroke);color:var(--dim);font-size:.78rem}
+  /* Narrow screens: let a wide table scroll inside itself rather than widening
+     the page. display:block is what makes overflow-x apply to a table. */
+  @media (max-width:640px){
+    .wrap{padding:20px 12px 60px}
+    table{display:block;overflow-x:auto;-webkit-overflow-scrolling:touch}
+    h1{font-size:1.45rem}
+    nav a{margin-right:10px}
+  }
+  @media print{body{background:#fff;color:#000}h1,h2,h3{color:#000;-webkit-text-fill-color:#000}
+    p,li,td{color:#111}.card,nav{border:1px solid #ccc;background:none}pre{background:#f4f4f4}}
+</style>
+</head>
+<body>
+<div class="wrap">
+
+<h1>Tide &amp; Moon — technical documentation</h1>
+<p class="sub">What every number on the screen is, where it comes from, and what it can and cannot tell you.</p>
+
+<nav>
+  <a href="#legend">Legend</a>
+  <a href="#sources">Data sources</a>
+  <a href="#derived">Derived values</a>
+  <a href="#arch">Architecture</a>
+  <a href="#api">API endpoints</a>
+  <a href="#alerts">Alerts</a>
+  <a href="#reports">Catch reports</a>
+  <a href="#analysis">Analysis</a>
+  <a href="#admin">Admin panel</a>
+  <a href="#storage">Storage</a>
+  <a href="#config">Configuration</a>
+  <a href="#limits">Limitations</a>
+  <a href="#ops">Operations</a>
+</nav>
+
+<h2 id="legend">Legend</h2>
+<p>Every value in this app falls into one of four categories. The distinction matters: only one of them is a measurement.</p>
+<table>
+  <tr><th>Tag</th><th>Meaning</th></tr>
+  <tr><td><span class="tag t-static">bundled</span></td><td>Shipped in the app as a static file. Does not change until the file is regenerated.</td></tr>
+  <tr><td><span class="tag t-live">live</span></td><td>Fetched over the network when you open the app.</td></tr>
+  <tr><td><span class="tag t-calc">computed</span></td><td>Calculated on your device. No network, works offline.</td></tr>
+  <tr><td><span class="tag t-user">user</span></td><td>Entered by a person.</td></tr>
+</table>
+<div class="warn">
+  <strong>Nothing in this app is measured by an instrument.</strong> There is no tide gauge and no weather
+  station behind any figure. Tides are a harmonic model, weather is a forecast model, and the moon is arithmetic.
+  The one exception is elevation, which is a real terrain measurement.
+</div>
+
+<h2 id="sources">Data sources</h2>
+
+<h3>Tide times and heights <span class="tag t-static">bundled</span></h3>
+<p>The full chain, two steps removed from any authority:</p>
+<pre><code>Tide-Forecast.com  (harmonic model, heights above local chart datum)
+  → Apify actor  lulzasaur/tideforecast-scraper
+    → hand-mapped into  public/tidedata.json
+      → bundled into the build, fetched as a static file</code></pre>
+<ul>
+  <li><strong>Not live.</strong> <code>App.jsx</code> fetches a file, not an API. Nothing about tides changes between data refreshes.</li>
+  <li><strong>The times are strings from the scrape</strong>, not calculated. A record looks like
+      <code>{"t":"3:21AM","m":0.09,"type":"Low","ts":1785102660}</code>. The app only inserts a space to make <code>3:21 AM</code>.</li>
+  <li><strong>It expires.</strong> The current file covers <strong>24 Jul → 22 Aug 2026</strong>. After that there is no tide data until the scraper is re-run.</li>
+  <li><strong>This is not INCOIS</strong> and not the Indian Naval Hydrographic Office. It is a third-party site's harmonic model, scraped.</li>
+</ul>
+<div class="warn">
+  <strong>All eight local spots share one tide table.</strong> Every spot in <code>tidedata.json</code> has
+  <code>station: "Kannur"</code>, so Azhikkal, Mattool, Madayi, Puthiyangadi, Payangadi, Chembalikundu,
+  Payangadi Puzha and Palakodu all show <em>identical</em> tides. Switching spot changes the label, not the numbers.
+  Of the registered stations only <strong>Kannur</strong> and <strong>Cochin</strong> have tide tables at all.
+</div>
+
+<h3>Moon phase, illumination, age, zodiac <span class="tag t-calc">computed</span></h3>
+<p>Pure arithmetic in <code>src/lib/moon.js</code>. No network, works offline.</p>
+<pre><code>JD    = unix_ms / 86400000 + 2440587.5     (2440587.5 = JD of 1970-01-01)
+phase = frac((JD − 2451550.1) / 29.530588853)
+        2451550.1 = JD of a known new moon (6 Jan 2000)
+        29.530588853 = synodic month, in days
+age   = phase × 29.530588853
+illum = (1 − cos(2π × phase)) / 2       ← the percentage shown</code></pre>
+<p>The check is built in: phase 0 gives <code>(1−cos 0)/2</code> = 0% (new); phase 0.5 gives <code>(1−cos π)/2</code> = 100% (full).</p>
+<p><strong>The phase <em>name</em> does not come from the illumination.</strong> It comes from eight hardcoded
+thresholds on age: <code>&lt;1.5 New · &lt;6 Waxing Crescent · &lt;9 First Quarter · &lt;13 Waxing Gibbous ·
+&lt;16.5 Full · &lt;20.5 Waning Gibbous · &lt;24 Last Quarter · else Waning Crescent</code>. See
+<a href="#limits">Limitations</a> — this is a known defect.</p>
+<p><strong>Zodiac is explicitly approximate.</strong> Mean longitude <code>218.316 + 13.176396d</code> plus a
+single correction term <code>6.289·sin(M)</code>. A real ephemeris uses dozens more, so expect the sign to be
+wrong near boundaries.</p>
+
+<h3>Sunrise, sunset, moonrise, moonset <span class="tag t-calc">computed</span></h3>
+<p>Via <code>suncalc</code> 2.0.1 in <code>src/lib/sunmoon.js</code>, on-device.</p>
+<ul>
+  <li>This build returns <strong>degrees, not radians</strong> — verified: altitude is <code>−0.349</code> at sunrise
+      (atmospheric refraction) and <code>82.99</code> at solar noon for 11.9°N in July.</li>
+  <li><code>getMoonTimes</code> scans <strong>UTC</strong> calendar days while the app runs on IST, so the code probes
+      three UTC days and keeps the events falling inside the Indian day.</li>
+  <li><strong>Some days genuinely have no moonrise or no moonset</strong> — about 1 day in 30. The moon rises ~50 min
+      later each day, so occasionally neither event lands inside a single day. The UI shows "none today" rather than an error.</li>
+</ul>
+
+<h3>Wind, humidity, temperature, pressure, rain <span class="tag t-live">live</span></h3>
+<p><a href="https://api.open-meteo.com" style="color:var(--acc)">api.open-meteo.com</a> — no API key, called
+directly from the browser (they send <code>access-control-allow-origin: *</code>).</p>
+<p><strong>Two models are used, deliberately.</strong> Open-Meteo's default <code>best_match</code> was scored against
+real airport instruments (METAR) at eight Indian airports, querying the model at each instrument's own coordinate so
+that model error was isolated from grid distance:</p>
+<table>
+  <tr><th>Model</th><th>Humidity bias</th><th>Humidity error</th><th>Wind error</th></tr>
+  <tr><td><code>best_match</code> (their default)</td><td>+4.5 pt</td><td>7.7 pt</td><td>4.3 km/h</td></tr>
+  <tr><td><code>gfs_seamless</code></td><td>−4.4 pt</td><td>7.7 pt</td><td><strong>3.4 km/h</strong></td></tr>
+  <tr><td><code>ecmwf_ifs025</code></td><td>+5.1 pt</td><td>8.9 pt</td><td>3.9 km/h</td></tr>
+  <tr><td><code>icon_seamless</code></td><td><strong>+1.4 pt</strong></td><td><strong>5.2 pt</strong></td><td>5.1 km/h</td></tr>
+</table>
+<p>The default was best at neither and pinned Kerala humidity near 99% where instruments read 89%. So the app takes
+<strong>moisture and temperature from ICON</strong> and <strong>wind from GFS</strong>. Measured result:
+humidity bias +4.5 → <strong>+2.0 pt</strong>, wind error 4.3 → <strong>3.3 km/h</strong>.</p>
+<p>The <strong>± figure</strong> beside humidity and wind is how far the two models disagree. A large spread means low
+confidence — it is real uncertainty, not decoration.</p>
+<div class="warn">
+  <strong>The grid is 5–8 km wide.</strong> Requests snap to the nearest model grid point, which around Kannur means
+  Azhikkal, Mattool and Puthiyangadi can land in the <em>same cell</em> and return byte-identical wind and humidity.
+  No weather product resolves spots 3–8 km apart; the real difference between them is smaller than every model's error bar.
+</div>
+
+<h3>Waves and swell period <span class="tag t-live">live</span></h3>
+<p><a href="https://marine-api.open-meteo.com" style="color:var(--acc)">marine-api.open-meteo.com</a>. Two uses:
+current conditions, and <strong>30 days of recorded daily history</strong> for the "Range here" block
+(<code>wave_height_max</code>, <code>wave_period_max</code>). Those historical figures are recorded, not forecast.</p>
+<div class="warn">
+  <strong>Wave rows are hidden at the river spots.</strong> The marine API has no concept of a riverbank — asked for
+  waves at a river it snaps to the nearest <em>ocean</em> cell and returns the swell there. Measured:
+  Payangadi Puzha <code>1.32 m / 9.95 s</code> from a point <strong>4.7 km offshore</strong>; Chembalikundu
+  <code>1.10 m / 9.75 s</code> from <strong>4.0 km offshore</strong>. Those numbers are true for the open sea and
+  meaningless on a river, so they are suppressed. The inland list is <code>src/lib/places.js</code>.
+  <strong>Tides are not suppressed</strong> — Kerala's backwaters and river mouths are genuinely tidal.
+</div>
+
+<h3>Altitude <span class="tag t-live">live</span></h3>
+<p>The <em>only</em> figure in the app backed by a real measurement: a <strong>Copernicus DEM</strong> lookup at your
+exact coordinate (~90 m resolution), returned by Open-Meteo. It varies over ~100 m of ground, unlike the weather values.
+A reading of <code>0 m</code> means the DEM cell is water.</p>
+
+<h3>Your location <span class="tag t-user">user</span></h3>
+<p><code>navigator.geolocation</code>, from the device. Used to find the nearest station by great-circle distance
+(haversine, R = 6371 km). Tides then come from that station, but <strong>weather uses your actual coordinates</strong>,
+not the station's.</p>
+
+<h3>Dates, weekday and month names <span class="tag t-calc">computed</span></h3>
+<p>From the browser's own ICU tables via <code>toLocaleDateString</code> with <code>en-IN</code> or <code>ml-IN</code> —
+not from any file. Timezone is hardcoded <code>Asia/Kolkata</code>.</p>
+
+<h2 id="derived">Values that are calculated, not fetched</h2>
+<p>These look like data but are not. Knowing which is which matters when judging accuracy.</p>
+
+<h3>The "Now" tide level</h3>
+<p>This number appears nowhere in the source data. It is interpolated between the two scraped extremes bracketing the
+current moment:</p>
+<pre><code>f      = (now − previous.ts) / (next.ts − previous.ts)
+weight = (1 − cos(π × f)) / 2          ← half-cosine S-curve
+level  = previous.m + (next.m − previous.m) × weight</code></pre>
+<p>A cosine is used because a tide between two turning points is roughly sinusoidal: zero slope at each extreme,
+steepest at mid-tide. It is the smooth equivalent of the sailor's rule of twelfths — but it is
+<strong>interpolation between two scraped points</strong>, not a harmonic model.</p>
+
+<h3>"Rising" / "Falling"</h3>
+<p>Simply <code>next.m &gt; previous.m</code>. A direction only — <strong>no rate is ever calculated</strong>.
+Nothing in the app gives you metres per hour.</p>
+
+<h3>The animated water level</h3>
+<p><code>clamp((level − min) / (max − min) × 100, 8, 96)</code> across the whole loaded table. Because it is clamped to
+8–96%, <strong>the fill height is not a linear reading</strong> — it is decorative, so there is always visible water.
+Read the number, not the picture.</p>
+
+<h3>Four tide tiles per day</h3>
+<p>Some days genuinely have only three tides — the semidiurnal cycle is ~12 h 25 m, so the pattern drifts ~50 min later
+each day and roughly every fortnight the fourth extreme slips past midnight. Rather than show a broken-looking row, the
+forecast borrows the next day's opening tide and marks it <strong>"next day"</strong>. Nothing is invented: every tile
+is a real tide, labelled with the day it actually falls on. Filters ("High only" / "Low only") are never padded.</p>
+
+<h2 id="arch">Architecture</h2>
+<pre><code>Browser (React + Vite, PWA)
+   │
+   ├─ public/tidedata.json ................ tides (static, bundled)
+   ├─ api.open-meteo.com .................. weather      (direct, no key)
+   ├─ marine-api.open-meteo.com ........... waves        (direct, no key)
+   │
+   └─ /api/*  →  Netlify Functions (server-side secrets)
+                    ├─ catch-report .... insert a report  → Supabase
+                    ├─ catch-stats ..... read aggregates  → Supabase
+                    ├─ admin ........... CRUD, Basic auth → Supabase
+                    ├─ weather ......... optional Google Weather provider
+                    ├─ push-config ..... hand the browser the VAPID public key
+                    ├─ push-subscribe .. store a device subscription → Supabase
+                    └─ push-send ....... scheduled every 5 min, sends push
+</code></pre>
+<p><strong>Why functions exist at all:</strong> the Supabase <code>service_role</code> key bypasses Row Level Security,
+so it can never be in the browser; the browser <em>cannot read its own public IP</em>, which the report schema records;
+validation in the browser is bypassable; and a scheduled sender must run with no browser open.</p>
+
+<h2 id="api">API endpoints</h2>
+<table>
+  <tr><th>Route</th><th>Method</th><th>Purpose</th><th>Auth</th></tr>
+  <tr><td><code>/api/catch-report</code></td><td>POST</td><td>Store one catch report with its conditions snapshot</td><td>none (public)</td></tr>
+  <tr><td><code>/api/catch-stats</code></td><td>GET</td><td>Aggregates + rows for the analysis dashboard. <strong>Never selects <code>ip</code>.</strong></td><td>none (public)</td></tr>
+  <tr><td><code>/api/admin</code></td><td>POST</td><td><code>login</code> · <code>list</code> · <code>create</code> · <code>update</code> · <code>delete</code></td><td>HTTP Basic, server-verified</td></tr>
+  <tr><td><code>/api/weather</code></td><td>GET</td><td>Google Weather if a key is set, else tells the browser to use Open-Meteo</td><td>none</td></tr>
+  <tr><td><code>/api/push-config</code></td><td>GET</td><td>Whether push is configured, plus the VAPID <em>public</em> key</td><td>none</td></tr>
+  <tr><td><code>/api/push-subscribe</code></td><td>POST</td><td>Register/refresh this device's push subscription and rule</td><td>none</td></tr>
+  <tr><td><em>(scheduled)</em> <code>push-send</code></td><td>cron</td><td>Every <code>*/5 * * * *</code> — finds due alerts and sends them</td><td>Netlify scheduler</td></tr>
+</table>
+<div class="warn">
+  Routing order matters. In <code>netlify.toml</code> the <code>/api/*</code> redirect must come <strong>before</strong>
+  the SPA catch-all, or a POST is swallowed and returns <code>index.html</code> instead of reaching the function.
+</div>
+
+<h2 id="alerts">Alerts</h2>
+
+<h3>The rule</h3>
+<table>
+  <tr><th>Option</th><th>Values</th></tr>
+  <tr><td>Lead time</td><td>at the tide, 15, 30, 45 min, 1, 1.5, 2, 3, 4, 5, <strong>6 hours</strong></td></tr>
+  <tr><td>Which tide</td><td>Low · High · Any</td></tr>
+  <tr><td>Conditions (optional)</td><td>tide height · wind speed · wind gust · wave height · humidity, each <em>below</em> or <em>above</em> a value</td></tr>
+</table>
+
+<h3>Conditions are checked at the tide, not now</h3>
+<p>A rule like <em>"wind under 15 km/h"</em> asked at 9 pm about a 4 am low tide is a question about <strong>4 am</strong>.
+Current conditions cannot answer it. The app fetches the <strong>hourly forecast</strong> and reads the values at the
+tide's own timestamp. The difference is real — in one measured case wind was 18 km/h at the 4:52 am low but 12.2 km/h at
+the 11:26 pm high.</p>
+<p>If a condition cannot be evaluated (no forecast for that field) it <strong>fails</strong> rather than passing silently,
+so a rule you set is never quietly bypassed. When a rule blocks an alert, the card says which condition failed and by how much.</p>
+
+<h3>Why a timer alone is not enough</h3>
+<p>A single <code>setTimeout</code> is not a promise about the wall clock. A hidden tab is throttled to roughly one wake
+per minute, and a sleeping phone freezes the page entirely — on wake the timer resumes counting the <em>remaining</em>
+delay from that instant instead of catching up. Measured on a fake clock, a 6-hour warning with a 7-hour sleep in the
+middle fired 5.5 hours late. The scheduler therefore re-derives the countdown from <code>Date.now()</code> on every wake,
+in ticks capped at 15 s, plus an immediate check when the page becomes visible.</p>
+
+<h3>Alerts with the app closed</h3>
+<p>Even a correct timer cannot run when the app is closed — Android freezes a backgrounded tab within minutes and then
+discards it. Reaching a closed browser needs a server, so the rule is registered with one:
+<code>push-send</code> runs every 5 minutes, finds each device's due tide, re-checks the conditions against the forecast
+at that tide, and sends an encrypted Web Push that the service worker displays with no page running. Exactly one route is
+ever armed, so an open device cannot also raise its own duplicate.</p>
+<div class="ok">
+  <strong>Android requires the service worker.</strong> <code>new Notification()</code> throws
+  <em>"Illegal constructor"</em> on Android Chrome — it is forbidden there, though it works on desktop. All notifications
+  go through <code>ServiceWorkerRegistration.showNotification()</code>, with the constructor kept only as a desktop
+  fallback for when no worker is registered.
+</div>
+
+<h3>Daily summary</h3>
+<p>Today's moon phase and every tide, at a chosen time, for a chosen place. Time is stored as <code>HH:MM</code> in
+IST wall-clock — India has no daylight saving, so <code>"05:30"</code> means the same instant every day and never drifts.
+With "deliver even when closed" <strong>off</strong>, the time never leaves the phone: the server stores
+<code>daily_time = NULL</code> and a timer in the page delivers it. Privacy is enforced by what is written, not by hiding a field.</p>
+
+<h2 id="reports">Catch reports</h2>
+<p>Fields: what was caught (fish / crab / other + free text), quantity in kg via slider or the
+<strong>Good = 5 / Normal = 1 / Bad = 0</strong> presets, and optional notes.</p>
+<p><strong>Every report carries a snapshot of the conditions at the moment of submission</strong> — tide state and height,
+next extreme, moon phase and illumination, wind, humidity, elevation and wave height. Stored per row rather than joined
+later, because the forecast for a past moment cannot be reconstructed. Values are stored in canonical English
+(<code>rising</code>/<code>falling</code>, <code>high</code>/<code>low</code>, English moon phase) regardless of UI
+language, so Malayalam reports do not fragment the dataset.</p>
+<p><strong>Two identifiers</strong>, and both are needed:</p>
+<ul>
+  <li><code>device_id</code> — a random UUID generated once and kept in <code>localStorage</code>. Stable per phone.</li>
+  <li><code>ip</code> — read <strong>server-side</strong> from the Netlify edge, because a page cannot read its own public IP.</li>
+</ul>
+<p>Group by <code>device_id</code> for per-user analysis, never by <code>ip</code>: mobile carriers put many users behind
+one address (CGNAT) and rotate them, so IP both merges different people and splits the same one over time.</p>
+
+<h2 id="analysis">Analysis dashboard</h2>
+<ul>
+  <li><strong>Line chart</strong> — one point per report, catch weight against time. Y starts at zero deliberately: with
+      weights the distance from zero <em>is</em> the quantity, so a truncated axis would exaggerate every difference.</li>
+  <li><strong>Tap a point</strong> (or a table row) to open that report with every condition recorded at the time.</li>
+  <li><strong>Table view</strong> — all reports, 13 columns, newest first.</li>
+  <li><strong>"When the catch is biggest"</strong> — conditions ranked by average catch.</li>
+</ul>
+<div class="ok">
+  <strong>A hard sample-size floor of 5.</strong> A group with fewer than 5 reports is dimmed, labelled "too few", and
+  excluded from "best" and "worst" — even when it has the highest average. Tested adversarially: a 2-report group
+  averaging 9.7 kg was correctly excluded in favour of a 10-report group averaging 6.6 kg. With nothing above the floor
+  the dashboard says so rather than presenting noise as a finding.
+</div>
+<p>Charts are hand-rolled SVG. <code>recharts</code> was rejected: 7.1 MB unpacked and 11 dependencies (including Redux)
+for three charts, against a total bundle of ~200 KB.</p>
+<p>Magnitude is carried by <strong>bar length and sort order, never colour</strong>. The obvious green-good/orange-bad
+split fails colour-vision checks — those two separate by only ΔE 6.7 under deuteranopia, which affects roughly 1 in 12 men.</p>
+
+<h2 id="admin">Admin panel</h2>
+<p>At <code>/admin</code>. View, create, edit and delete reports — single rows or a selected batch — in a table or chart view.</p>
+<div class="warn">
+  <strong>The login form is not the security boundary.</strong> Credentials are verified server-side on
+  <em>every request</em>; the React form only collects them. A password checked in the browser would be readable in the
+  public bundle, and the API would still be open to <code>curl</code>. If <code>ADMIN_USER</code> or
+  <code>ADMIN_PASSWORD</code> is unset the API returns <code>503</code> for everything — <strong>there is deliberately no
+  default password</strong>, because a default in a public repo is the same as no password.
+</div>
+<ul>
+  <li>Comparison is <strong>timing-safe</strong>: both sides are SHA-256'd first so the digests are equal length (a length
+      mismatch would itself leak information), and username and password are both compared regardless of whether the first
+      matched, so response time does not reveal which half was wrong.</li>
+  <li><strong>Column allowlist</strong> on writes: <code>id</code>, <code>created_at</code> and <code>ip</code> cannot be
+      forged or renumbered. A request touching only those returns <code>nothing to update</code>.</li>
+  <li><code>catch_type</code> and <code>quantity_kg</code> are re-validated after defaults are applied.</li>
+  <li><strong>No rate limiting</strong> — Netlify Functions are stateless. A weak password is the entire exposure.</li>
+</ul>
+
+<h2 id="storage">Storage</h2>
+
+<h3>Database (Supabase Postgres)</h3>
+<table>
+  <tr><th>Table</th><th>Holds</th><th>RLS</th></tr>
+  <tr><td><code>catch_reports</code></td><td>Reports + conditions snapshot. The only table with an <code>ip</code> column.</td><td>enabled, no policies</td></tr>
+  <tr><td><code>push_subscriptions</code></td><td>Push endpoint, keys, station, alert rule, daily-summary schedule. <strong>No IP column.</strong></td><td>enabled, no policies</td></tr>
+</table>
+<p><strong>RLS enabled with no policies denies everything</strong> to the <code>anon</code> and <code>authenticated</code>
+roles. The service role bypasses RLS, so the functions still work and nothing else can read or write. Migrations live in
+<code>supabase/migrations/</code>; 11 ready-made analysis queries are in <code>supabase/queries.sql</code>.</p>
+
+<h3>On the device (localStorage)</h3>
+<table>
+  <tr><th>Key</th><th>Holds</th></tr>
+  <tr><td><code>tide_selection</code></td><td>Last place picked, restored on reload</td></tr>
+  <tr><td><code>tide_favs</code></td><td>Starred places</td></tr>
+  <tr><td><code>tide_lang</code></td><td><code>en</code> or <code>ml</code></td></tr>
+  <tr><td><code>tide_device_id</code></td><td>Random UUID identifying this device in reports</td></tr>
+  <tr><td><code>tide_alert_rule</code> · <code>tide_alert_fired</code></td><td>Alert rule; which alerts already fired (survives reload, so a refresh cannot re-fire)</td></tr>
+  <tr><td><code>tide_daily_alert</code> · <code>tide_daily_fired</code></td><td>Daily summary schedule and its last send</td></tr>
+  <tr><td><code>tide_admin_auth</code></td><td>Admin credentials, <strong>sessionStorage</strong> — cleared when the tab closes</td></tr>
+</table>
+
+<h2 id="config">Configuration</h2>
+<p>All secrets are server-side environment variables. <strong>None use a <code>VITE_</code> prefix</strong>, because
+those are compiled into the public bundle.</p>
+<table>
+  <tr><th>Variable</th><th>Needed for</th><th>Secret</th></tr>
+  <tr><td><code>SUPABASE_URL</code></td><td>Catch reports, analysis, admin, push</td><td>no</td></tr>
+  <tr><td><code>SUPABASE_SERVICE_KEY</code></td><td>The same. Bypasses RLS.</td><td><strong>yes</strong></td></tr>
+  <tr><td><code>ADMIN_USER</code> / <code>ADMIN_PASSWORD</code></td><td><code>/admin</code>. Unset = admin disabled.</td><td><strong>password: yes</strong></td></tr>
+  <tr><td><code>VAPID_PUBLIC_KEY</code> / <code>VAPID_PRIVATE_KEY</code> / <code>VAPID_SUBJECT</code></td><td>Alerts with the app closed</td><td><strong>private key: yes</strong></td></tr>
+  <tr><td><code>GOOGLE_MAPS_API_KEY</code></td><td>Optional. Google Weather instead of Open-Meteo.</td><td><strong>yes</strong></td></tr>
+</table>
+<p>Both Supabase key formats work: a legacy <code>eyJ…</code> JWT is sent as <code>apikey</code> + <code>Bearer</code>,
+while a modern <code>sb_secret_…</code> key is sent as <code>apikey</code> only — it is not a JWT and Bearer validation
+would reject it.</p>
+<div class="warn">
+  <strong>Environment variables are baked into a deploy.</strong> Setting one in the dashboard does nothing to the deploy
+  already running. Always redeploy afterwards — this is the single most common cause of "not configured" errors.
+</div>
+
+<h2 id="limits">Known limitations</h2>
+<ol>
+  <li><strong>The moon phase name can contradict "Next full".</strong> The name comes from crude age bands
+      (Full = age 13.0–16.5 days) while the date comes from an actual phase search. True full moon is at age 14.765, so the
+      band is −1.77/+1.73 days wide and the card can read "Full Moon" while saying the next full moon is two days away.
+      Fix: derive the name from phase proximity instead of bands.</li>
+  <li><strong>Tide data expires.</strong> The bundled file covers 24 Jul → 22 Aug 2026. Re-run the scraper before it lapses.</li>
+  <li><strong>All local spots share one tide table</strong> — switching spot changes only the label.</li>
+  <li><strong>Weather cannot resolve neighbouring spots.</strong> 5–8 km grid; nearby places legitimately read identically.</li>
+  <li><strong>No rate limiting anywhere.</strong> Catch reports are public and unauthenticated; anyone can submit and
+      pollute the averages. The admin endpoint has no lockout.</li>
+  <li><strong>Malayalam is unreviewed.</strong> Place names, zodiac and the original tide terms were pre-existing;
+      everything else was written during development and has not been checked by a native speaker.</li>
+  <li><strong>No "not for navigation" notice is displayed.</strong> It was removed from the header and footer at the
+      owner's request. Heights remain approximate near shore.</li>
+</ol>
+
+<h2 id="ops">Operations</h2>
+<h3>Running locally</h3>
+<pre><code>npm run dev       # Vite only, port 5173 — NO /api/* functions
+npm run dev:api   # netlify dev, port 8888 — everything works</code></pre>
+<p>Use <strong>8888</strong>. Catch reports, admin and push all fail on 5173 because the functions do not exist there.</p>
+
+<h3>Refreshing tide data</h3>
+<p>Re-run the Apify scraper and regenerate <code>public/tidedata.json</code>. See the README.</p>
+
+<h3>Offline behaviour</h3>
+<p>A service worker precaches the app shell and the tide table. With no signal, <strong>tides, moon, sun/moon and the
+7-day forecast all still work</strong>; live weather fails and says so. Verified with the network fully disconnected.
+The worker discovers its own hashed asset filenames by parsing <code>index.html</code> at install, because the build
+hashes them and they cannot be listed in advance.</p>
+
+<div class="foot">
+  Generated from the codebase. Figures quoted here (model error, grid distances, wave measurements) were measured
+  against live APIs and real airport instruments during development, not estimated.
+</div>
+
+</div>
+</body>
+</html>
