@@ -421,3 +421,14 @@ html[lang="ml"] .mnhead{letter-spacing:normal;text-transform:none;font-size:.74r
 .mnv small{color:var(--dim);font-size:.76rem}
 .mnn{display:block;font-style:normal;font-size:.66rem;color:var(--dim);margin-top:1px}
 @media (max-width:560px){ .mnrow{flex-wrap:wrap;gap:2px} .mnk{flex-basis:100%} }
+
+/* range grid: label | lowest | highest */
+.mngrid{display:grid;grid-template-columns:1fr auto auto;gap:8px 18px;align-items:baseline}
+.mnh{font-size:.62rem;text-transform:uppercase;letter-spacing:.7px;color:var(--dim);
+  font-weight:700;text-align:right}
+.mnh:first-child{text-align:left}
+html[lang="ml"] .mnh{letter-spacing:normal;text-transform:none;font-size:.7rem}
+.mnlabel{font-size:.82rem;color:var(--txt)}
+.mnnum{font-size:1rem;font-weight:800;text-align:right;font-variant-numeric:tabular-nums;
+  min-width:64px;white-space:nowrap}
+.mnnum small{font-size:.68rem;color:var(--mut);font-weight:600}

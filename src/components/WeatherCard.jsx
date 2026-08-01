@@ -98,29 +98,36 @@ export default function WeatherCard({ lat, lon, lang, onLoad, ex }) {
 
               {month === undefined && <div className="hint">{L.monthLoading}</div>}
 
-              {month && (
-                <div className="mnrow">
-                  <span className="mnk">🌊 {L.monthWaves}</span>
-                  <span className="mnv">
-                    <b>{n1(month.minH)}–{n1(month.maxH)} m</b>
-                    <small> · {L.monthTypical} {n1(month.avgH)} m · {L.monthBiggest(dayName(month.biggestDay))}</small>
-                    {month.maxP != null && <small> · {L.monthPeriodUpTo} {n1(month.maxP)} s</small>}
-                    <em className="mnn">{L.monthSpan(dayName(month.from), dayName(month.to), month.days)}</em>
-                  </span>
-                </div>
-              )}
+              {/* Just the bounds: lowest and highest for this place. No dates —
+                  the question is "how low and how high does it get here", not
+                  "when". */}
+              <div className="mngrid">
+                <div className="mnh" />
+                <div className="mnh">{L.monthMin}</div>
+                <div className="mnh">{L.monthMax}</div>
 
-              {tideMonth && (
-                <div className="mnrow">
-                  <span className="mnk">🌘 {L.monthTides}</span>
-                  <span className="mnv">
-                    <b>{n2(tideMonth.lo)}–{n2(tideMonth.hi)} m</b>
-                    <small> · {L.monthTideRange} {n2(tideMonth.range)} m</small>
-                    <small> · {L.high} {dayName(tideMonth.hiDate)} {tideMonth.hiTime} · {L.low} {dayName(tideMonth.loDate)} {tideMonth.loTime}</small>
-                    <em className="mnn">{L.monthSpan(dayName(tideMonth.from), dayName(tideMonth.to), tideMonth.days)}</em>
-                  </span>
-                </div>
-              )}
+                {tideMonth && (
+                  <>
+                    <div className="mnlabel">🌘 {L.monthTides}</div>
+                    <div className="mnnum">{n2(tideMonth.lo)} <small>m</small></div>
+                    <div className="mnnum">{n2(tideMonth.hi)} <small>m</small></div>
+                  </>
+                )}
+                {month && (
+                  <>
+                    <div className="mnlabel">🌊 {L.monthWaveHeight}</div>
+                    <div className="mnnum">{n1(month.minH)} <small>m</small></div>
+                    <div className="mnnum">{n1(month.maxH)} <small>m</small></div>
+                  </>
+                )}
+                {month && month.maxP != null && (
+                  <>
+                    <div className="mnlabel">〰 {L.monthSwell}</div>
+                    <div className="mnnum">{n1(month.minP)} <small>s</small></div>
+                    <div className="mnnum">{n1(month.maxP)} <small>s</small></div>
+                  </>
+                )}
+              </div>
             </div>
           )}
         </>

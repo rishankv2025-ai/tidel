@@ -200,17 +200,13 @@ const DICT = {
     gridOffset: km => `nearest model grid point is ${km} km away, so nearby spots can read identically`,
 
     // "this month" note under the conditions card
-    monthTitle: 'Recent sea state here',
-    monthWaves: 'Waves',
+    monthTitle: 'Range here',
+    monthMin: 'Lowest',
+    monthMax: 'Highest',
+    monthWaveHeight: 'Wave height',
+    monthSwell: 'Swell period',
     monthTides: 'Tides',
-    monthBiggest: on => `biggest ${on}`,
-    monthCalmest: on => `calmest ${on}`,
-    monthTypical: 'typical',
-    monthPeriodUpTo: 'swell period up to',
-    monthTideRange: 'range',
-    monthSpan: (from, to, n) => `${from} – ${to} · ${n} day${n === 1 ? '' : 's'}`,
     monthLoading: 'Reading this month…',
-    monthNone: 'No sea data for this month here.',
 
     // sun & moon card
     sunMoonTitle: 'Sun & Moon',
@@ -496,17 +492,13 @@ const DICT = {
     gridOffset: km => `അടുത്ത മോഡൽ ഗ്രിഡ് പോയിന്റ് ${km} കി.മീ അകലെ, അതിനാൽ അടുത്തുള്ള സ്ഥലങ്ങൾ ഒരേ വിവരം കാണിക്കാം`,
 
     // "this month" note under the conditions card
-    monthTitle: 'ഇവിടത്തെ സമീപകാല കടൽ നില',
-    monthWaves: 'തിരമാല',
+    monthTitle: 'ഇവിടത്തെ പരിധി',
+    monthMin: 'ഏറ്റവും കുറവ്',
+    monthMax: 'ഏറ്റവും കൂടുതൽ',
+    monthWaveHeight: 'തിരമാല ഉയരം',
+    monthSwell: 'തിരമാല ഇടവേള',
     monthTides: 'വേലി',
-    monthBiggest: on => `ഏറ്റവും വലുത് ${on}`,
-    monthCalmest: on => `ഏറ്റവും ശാന്തം ${on}`,
-    monthTypical: 'സാധാരണ',
-    monthPeriodUpTo: 'തിരമാല ഇടവേള പരമാവധി',
-    monthTideRange: 'വ്യത്യാസം',
-    monthSpan: (from, to, n) => `${from} – ${to} · ${n} ദിവസം`,
     monthLoading: 'ഈ മാസത്തെ വിവരം എടുക്കുന്നു…',
-    monthNone: 'ഈ മാസം ഇവിടെ കടൽ വിവരമില്ല.',
 
     // sun & moon card
     sunMoonTitle: 'സൂര്യൻ & ചന്ദ്രൻ',
