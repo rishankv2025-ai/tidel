@@ -79,6 +79,24 @@ export default function CatchReportCard({ lang, locationLabel, lat, lon, tide, m
         </div>
       )}
 
+      {/* One-tap presets. Most reports are "roughly good / normal / bad" rather
+          than a weighed figure, and dragging a slider on a boat is awkward.
+          Each simply sets the slider, which stays the source of truth, so the
+          exact number can still be adjusted afterwards. */}
+      <div className="fieldrow">
+        <div className="k">{L.catchHow}</div>
+        <div className="filters" style={{ marginBottom: 0 }}>
+          {[['good', 5, L.catchGood], ['normal', 1, L.catchNormal], ['bad', 0, L.catchBad]].map(([k, v, label]) => (
+            <button
+              key={k}
+              className={'btn' + (qty === v ? ' on' : '')}
+              onClick={() => setQty(v)}
+              aria-pressed={qty === v}
+            >{label}</button>
+          ))}
+        </div>
+      </div>
+
       <div className="fieldrow">
         <div className="k">{L.quantityQ}</div>
         <div className="sliderrow">

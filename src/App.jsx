@@ -219,7 +219,7 @@ export default function App() {
 
       <SunMoonCard dayKey={effKey} lat={coords.lat} lon={coords.lon} lang={lang} nowMs={nowMs} />
 
-      <WeatherCard lat={coords.lat} lon={coords.lon} lang={lang} onLoad={setWx} ex={ex} />
+      <WeatherCard lat={coords.lat} lon={coords.lon} lang={lang} onLoad={setWx} ex={ex} place={selection.label} />
 
       {hasData && <ForecastList ex={ex} startKey={effKey} lang={lang} />}
 

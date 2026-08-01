@@ -1,6 +1,7 @@
 import { useEffect, useMemo, useState } from 'react'
 import { fetchWeather, compass, fetchMonthWaves, monthTideStats } from '../lib/weather.js'
 import { t, localeFor } from '../lib/i18n.js'
+import { isInland } from '../lib/places.js'
 
 const n1 = v => (v == null ? '—' : Number(v).toFixed(1))
 const n0 = v => (v == null ? '—' : Math.round(Number(v)))
@@ -12,7 +13,11 @@ const n2 = v => (v == null ? '—' : Number(v).toFixed(2))
 // explained here. weather.js still returns observedAt, gridOffsetKm and both
 // spreads; they are data, not display, so restoring the note needs no rewrite.
 
-export default function WeatherCard({ lat, lon, lang, onLoad, ex }) {
+export default function WeatherCard({ lat, lon, lang, onLoad, ex, place }) {
+  // Wave figures at a river come from an ocean grid point kilometres away, so
+  // they are hidden rather than shown as if they described the water in front
+  // of you. Tide and weather still apply and stay.
+  const inland = isInland(place)
   const L = t(lang)
   const [w, setW] = useState(null)
   const [err, setErr] = useState('')
@@ -73,18 +78,22 @@ export default function WeatherCard({ lat, lon, lang, onLoad, ex }) {
             <div><div className="k">{L.feelsLike}</div><div className="v">{n1(w.feels)}°C</div></div>
             <div><div className="k">{L.pressure}</div><div className="v">{n0(w.pressure)} <small>hPa</small></div></div>
             <div><div className="k">{L.rain}</div><div className="v">{n1(w.precip)} <small>mm</small></div></div>
-            <div>
-              <div className="k">{L.waveHeight}</div>
-              <div className="v">
-                {w.waveHeight == null
-                  ? <small>{L.noWaveData}</small>
-                  : <>{n1(w.waveHeight)} <small>m · {compass(w.waveDir, lang)}</small></>}
-              </div>
-            </div>
-            <div>
-              <div className="k">{L.wavePeriod}</div>
-              <div className="v">{w.wavePeriod == null ? '—' : <>{n1(w.wavePeriod)} <small>s</small></>}</div>
-            </div>
+            {!inland && (
+              <>
+                <div>
+                  <div className="k">{L.waveHeight}</div>
+                  <div className="v">
+                    {w.waveHeight == null
+                      ? <small>{L.noWaveData}</small>
+                      : <>{n1(w.waveHeight)} <small>m · {compass(w.waveDir, lang)}</small></>}
+                  </div>
+                </div>
+                <div>
+                  <div className="k">{L.wavePeriod}</div>
+                  <div className="v">{w.wavePeriod == null ? '—' : <>{n1(w.wavePeriod)} <small>s</small></>}</div>
+                </div>
+              </>
+            )}
           </div>
 
           {/* Recorded, not forecast: Open-Meteo serves daily marine aggregates
@@ -113,14 +122,14 @@ export default function WeatherCard({ lat, lon, lang, onLoad, ex }) {
                     <div className="mnnum">{n2(tideMonth.hi)} <small>m</small></div>
                   </>
                 )}
-                {month && (
+                {month && !inland && (
                   <>
                     <div className="mnlabel">🌊 {L.monthWaveHeight}</div>
                     <div className="mnnum">{n1(month.minH)} <small>m</small></div>
                     <div className="mnnum">{n1(month.maxH)} <small>m</small></div>
                   </>
                 )}
-                {month && month.maxP != null && (
+                {month && !inland && month.maxP != null && (
                   <>
                     <div className="mnlabel">〰 {L.monthSwell}</div>
                     <div className="mnnum">{n1(month.minP)} <small>s</small></div>
@@ -128,6 +137,7 @@ export default function WeatherCard({ lat, lon, lang, onLoad, ex }) {
                   </>
                 )}
               </div>
+              {inland && <div className="hint" style={{ marginTop: 10 }}>{L.riverNote}</div>}
             </div>
           )}
         </>

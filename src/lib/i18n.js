@@ -224,6 +224,14 @@ const DICT = {
     moonNoEvent: 'none today',
     sunMoonSrc: 'Computed on-device from your coordinates. Times are IST.',
 
+    // catch quality presets — set the slider without dragging it
+    catchHow: 'How was it?',
+    catchGood: '😀 Good',
+    catchNormal: '🙂 Normal',
+    catchBad: '😕 Bad',
+    // inland spots: the marine grid point is kilometres out to sea
+    riverNote: 'A river, so sea waves do not apply here. Tide and weather still do.',
+
     // catch report
     reportTitle: 'Report your catch',
     catchTypeQ: 'What did you catch?',
@@ -515,6 +523,13 @@ const DICT = {
     moonAllDay: 'ദിവസം മുഴുവൻ മുകളിൽ',
     moonNoEvent: 'ഇന്നില്ല',
     sunMoonSrc: 'നിങ്ങളുടെ സ്ഥാനത്ത് നിന്ന് ഉപകരണത്തിൽ ഗണിച്ചത്. സമയം IST.',
+
+    // catch quality presets — set the slider without dragging it
+    catchHow: 'എങ്ങനെയുണ്ടായിരുന്നു?',
+    catchGood: '😀 നല്ലത്',
+    catchNormal: '🙂 സാധാരണ',
+    catchBad: '😕 മോശം',
+    riverNote: 'ഇത് പുഴയാണ്, അതിനാൽ കടൽ തിരമാല ഇവിടെ ബാധകമല്ല. വേലിയും കാലാവസ്ഥയും ബാധകമാണ്.',
 
     // catch report
     reportTitle: 'നിങ്ങളുടെ പിടിത്തം രേഖപ്പെടുത്തുക',
