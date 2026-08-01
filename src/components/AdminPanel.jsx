@@ -153,9 +153,12 @@ export default function AdminPanel({ lang }) {
   // ── login ────────────────────────────────────────────────────────────────
   if (!auth) {
     return (
-      <div className="app">
-        <div className="top"><div className="brand"><h1>{L.admTitle}</h1></div></div>
-        <div className="glass pad section" style={{ maxWidth: 380 }}>
+      // Centred in the viewport rather than pinned to the top-left of the
+      // 1040px content column, where it left ~900px of empty space beside it
+      // and ~600px below on a desktop screen.
+      <div className="app adminlogin">
+        <div className="brand" style={{ textAlign: 'center', marginBottom: 18 }}><h1>{L.admTitle}</h1></div>
+        <div className="glass pad" style={{ width: '100%', maxWidth: 380 }}>
           <form onSubmit={signIn}>
             <div className="fieldrow">
               <div className="k">{L.admUser}</div>
@@ -177,7 +180,9 @@ export default function AdminPanel({ lang }) {
 
   // ── panel ────────────────────────────────────────────────────────────────
   return (
-    <div className="app">
+    // wider than the public app: the report table has 13 columns and was
+    // needlessly cramped inside the 1040px reading column
+    <div className="app adminwide">
       <div className="top">
         <div className="brand"><h1>{L.admTitle}</h1></div>
         <div className="src"><button className="btn" onClick={signOut}>{L.admSignOut}</button></div>

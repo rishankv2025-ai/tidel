@@ -394,3 +394,17 @@ html[lang="ml"] .bigk{letter-spacing:normal;text-transform:none;font-size:.74rem
 .editgrid .k{text-transform:none;letter-spacing:normal;font-family:ui-monospace,Menlo,Consolas,monospace;font-size:.68rem}
 .dtable input[type=checkbox]{width:18px;height:18px;accent-color:var(--acc);cursor:pointer}
 @media (max-width:560px){ .editgrid{grid-template-columns:1fr} }
+
+/* Admin login: centre the card in the viewport. Without this it inherited the
+   public app's 1040px top-aligned column and sat stranded in the top-left
+   corner of a wide screen. */
+.app.adminlogin{
+  max-width:none;min-height:100vh;min-height:100dvh;
+  display:flex;flex-direction:column;align-items:center;justify-content:center;
+  padding:24px;
+}
+.app.adminlogin .brand h1{font-size:1.5rem}
+
+/* The signed-in panel gets more width than the reading column: the report table
+   has 13 columns and reads badly squeezed into 1040px. */
+.app.adminwide{max-width:1500px}
