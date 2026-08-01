@@ -55,6 +55,80 @@ export function compass(deg, lang) {
   return lang === 'ml' ? DIRS_ML[i] : DIRS[i]
 }
 
+// ── This month's sea state ──────────────────────────────────────────────────
+//
+// The current-conditions card says what it is like right now; this says what
+// the month has actually been like, which is what tells you whether today is
+// calm or rough *for the season*. Open-Meteo marine serves daily aggregates for
+// past dates, so these are real recorded values, not a forecast.
+const monthCache = new Map()
+
+export async function fetchMonthWaves(lat, lon, now = new Date()) {
+  // A ROLLING 30 DAYS, not the calendar month. On the 1st of a month the
+  // calendar version had exactly one day in it and reported "0.8–0.8 m", which
+  // is worse than saying nothing. A rolling window is always a full sample and
+  // is what "how has the sea been lately" actually means.
+  const last = now.toISOString().slice(0, 10)
+  const first = new Date(now.getTime() - 29 * 86400000).toISOString().slice(0, 10)
+  const k = `${key(lat, lon)}|${first}|${last}`
+  if (monthCache.has(k)) return monthCache.get(k)
+
+  const url = `${MARINE}?latitude=${lat}&longitude=${lon}` +
+    `&daily=wave_height_max,wave_period_max&start_date=${first}&end_date=${last}` +
+    `&timezone=Asia%2FKolkata`
+  const r = await fetch(url)
+  if (!r.ok) throw new Error('HTTP ' + r.status)
+  const j = await r.json()
+  const days = j.daily?.time || []
+  const hs = j.daily?.wave_height_max || []
+  const ps = j.daily?.wave_period_max || []
+
+  const pairs = days.map((d, i) => ({ d, h: hs[i], p: ps[i] })).filter(x => x.h != null)
+  if (!pairs.length) { monthCache.set(k, null); return null }
+
+  const heights = pairs.map(x => x.h)
+  const periods = pairs.map(x => x.p).filter(v => v != null)
+  const big = pairs.reduce((a, b) => (b.h > a.h ? b : a))
+  const calm = pairs.reduce((a, b) => (b.h < a.h ? b : a))
+  const out = {
+    days: pairs.length,
+    from: pairs[0].d, to: pairs[pairs.length - 1].d,
+    minH: Math.min(...heights),
+    maxH: Math.max(...heights),
+    avgH: heights.reduce((a, b) => a + b, 0) / heights.length,
+    biggestDay: big.d,
+    calmestDay: calm.d,
+    maxP: periods.length ? Math.max(...periods) : null,
+    minP: periods.length ? Math.min(...periods) : null,
+  }
+  monthCache.set(k, out)
+  return out
+}
+
+// Tide extremes across the WHOLE loaded table.
+//
+// Not a calendar slice: the table is a rolling ~30 days that straddles today,
+// so taking only the current month discarded most of it and, on the 1st, left
+// almost nothing. The span is returned so the UI can state the dates rather
+// than implying a month.
+export function monthTideStats(extremes) {
+  const inMonth = extremes
+  if (!inMonth.length) return null
+  const highs = inMonth.filter(e => e.type === 'high')
+  const lows = inMonth.filter(e => e.type === 'low')
+  if (!highs.length || !lows.length) return null
+  const hi = highs.reduce((a, b) => (b.m > a.m ? b : a))
+  const lo = lows.reduce((a, b) => (b.m < a.m ? b : a))
+  const dates = [...new Set(inMonth.map(e => e.date))].sort()
+  return {
+    days: dates.length,
+    from: dates[0], to: dates[dates.length - 1],
+    hi: hi.m, hiDate: hi.date, hiTime: hi.disp,
+    lo: lo.m, loDate: lo.date, loTime: lo.disp,
+    range: hi.m - lo.m,
+  }
+}
+
 // ── Hourly forecast, for alert conditions ───────────────────────────────────
 // A rule like "wind under 15 km/h" is about the weather AT the tide, which may
 // be hours away — current conditions cannot answer it. This fetches the hourly

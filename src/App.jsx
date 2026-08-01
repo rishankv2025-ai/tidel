@@ -21,6 +21,10 @@ const FAVS_KEY = 'tide_favs'
 // default becomes their first favourite instead of silently disappearing.
 const LEGACY_FAV_KEY = 'tide_fav_selection'
 const LANG_KEY = 'tide_lang'
+// Last place the user picked. Without this, every reload snapped back to the
+// first favourite (or Kannur), silently discarding the choice — favourites were
+// remembered but the current selection never was.
+const SEL_KEY = 'tide_selection'
 
 // identity of a place for favourite comparison — same shape the <select> uses
 export const favKeyOf = it => `${it.stationId}|${it.label}`
@@ -59,14 +63,36 @@ export default function App() {
     document.documentElement.lang = lang
   }, [lang])
 
+  // Remember the chosen place across reloads.
+  useEffect(() => {
+    if (!selection) return
+    try { localStorage.setItem(SEL_KEY, JSON.stringify(selection)) } catch { /* private mode */ }
+  }, [selection])
+
   useEffect(() => {
     fetch(`${import.meta.env.BASE_URL}tidedata.json`)
       .then(r => { if (!r.ok) throw new Error('HTTP ' + r.status); return r.json() })
       .then(d => {
         setData(d)
         const s0 = d.spots[0]
-        // first favourite is the default landing place, else the first spot
-        const first = favs[0] || { stationId: s0.station, label: s0.name, ml: s0.ml, lat: s0.lat, lon: s0.lon }
+        // Restore the last picked place, then fall back to the first favourite,
+        // then the first spot. The saved value is re-checked against the dataset
+        // rather than trusted: a spot renamed or dropped by a data refresh would
+        // otherwise leave the app pointing at a station that no longer exists.
+        let saved = null
+        try {
+          const raw = JSON.parse(localStorage.getItem(SEL_KEY) || 'null')
+          if (raw && raw.stationId && raw.label) {
+            const known = d.spots.some(p => p.name === raw.label && p.station === raw.stationId) ||
+              d.stations.some(s => s.id === raw.stationId && s.name === raw.label) ||
+              // a GPS pick is labelled "<station> (nearest)" and is not in the lists
+              (raw.kind === 'station' && d.stations.some(s => s.id === raw.stationId))
+            if (known) saved = raw
+          }
+        } catch { /* corrupt storage — fall through to the defaults */ }
+
+        const first = saved || favs[0] ||
+          { stationId: s0.station, label: s0.name, ml: s0.ml, lat: s0.lat, lon: s0.lon }
         setSelection(first)
       })
       .catch(e => setErr(e.message))
@@ -193,7 +219,7 @@ export default function App() {
 
       <SunMoonCard dayKey={effKey} lat={coords.lat} lon={coords.lon} lang={lang} nowMs={nowMs} />
 
-      <WeatherCard lat={coords.lat} lon={coords.lon} lang={lang} onLoad={setWx} />
+      <WeatherCard lat={coords.lat} lon={coords.lon} lang={lang} onLoad={setWx} ex={ex} />
 
       {hasData && <ForecastList ex={ex} startKey={effKey} lang={lang} />}
 
