@@ -40,8 +40,8 @@ Netlify reads `netlify.toml` (build = `npm run build`, publish = `dist`) and the
 
 ## How the data works (important)
 
-- Tide predictions come from **Tide-Forecast.com** (harmonic model, heights above **local chart datum**) via an Apify scraper.
-- The scraped results are saved to **`public/tidedata.json`**. The app reads only this file — **there is no API token in the app**, so nothing sensitive ships to the browser.
+- Tide predictions come from **Tide-Forecast.com** (harmonic model, heights above **Mean Lower Low Water**), scraped by `scripts/refresh-tides.mjs`.
+- The scraped results are saved to **`public/tidedata.json`**. The app reads only this file — **there is no API token anywhere**, in the app or in the scraper, so nothing sensitive ships to the browser.
 - Two stations are pre-loaded with data (**Kannur**, **Cochin**). Five more (Mangalore, Mumbai, Chennai, Kolkata, Bhavnagar, Vishakhapatnam) are **registered** with coordinates so "nearest station" / GPS works; their tide tables load once you add them in a refresh.
 - The moon phase, illumination, age and zodiac are **computed on-device** — no data source needed.
 - The "Now" tide level is **not** a data point — it is cosine-interpolated between the two scraped extremes that bracket the current time (`levelAt()` in `src/lib/tide.js`).
@@ -50,16 +50,52 @@ Netlify reads `netlify.toml` (build = `npm run build`, publish = `dist`) and the
 
 ### Refreshing / adding station data
 
-Each Tide-Forecast scrape covers ~30 days, so refresh roughly monthly (or to add a station). Ask your assistant to "refresh the Kannur tide data" (it re-runs the Apify actor and rewrites `public/tidedata.json`), or do it manually:
+Each scrape covers ~30 days, so **refresh roughly monthly**:
 
-1. Run the Apify actor `lulzasaur/tideforecast-scraper` with:
-   `{"mode":"location","startUrls":[{"url":"https://www.tide-forecast.com/locations/Kannur/tides/latest"}]}`
-   (add more `startUrls` for other stations; slugs are in `public/tidedata.json` → `stations[].slug`).
-2. Map each scraped tide to `{ t: time, m: parseFloat(heightMeters), type, ts: timestamp }`, grouped by `date`.
-3. Write the result into `public/tidedata.json` under `tides.<StationId>` and set that station's `hasData: true`.
-4. Rebuild / redeploy.
+```bash
+node scripts/refresh-tides.mjs --dry   # parse and report, write nothing
+node scripts/refresh-tides.mjs         # rewrite public/tidedata.json
+npm run build                          # then commit and redeploy
+```
 
-> ⚠️ **Security:** never put your Apify API token in this React app — anything with a `VITE_` prefix is baked into the public JavaScript bundle and readable by any visitor. The scrape/refresh runs outside the app (your assistant, a script, or a serverless function), and only the resulting JSON is shipped. If you pasted your token anywhere public, rotate it in the Apify console.
+The script fetches `https://www.tide-forecast.com/locations/<slug>/tides/latest` for
+every station with `hasData: true`, parses the tide tables, and rewrites
+`tides.<StationId>` plus `generatedAt` and `source`. To add a station, set its
+`hasData: true` in `public/tidedata.json` and re-run — slugs are already in
+`stations[].slug`.
+
+`--dry` prints day counts, the covered date range, tides-per-day and the height
+range next to the previous values, which is the quickest way to see whether a
+scrape looks sane before it is written.
+
+**When the window runs low the app says so.** If fewer than 7 days remain, a banner
+appears above the tide card naming the last covered date. Before that existed the
+forecast just got shorter each day and quietly emptied.
+
+> **No API token is involved.** An earlier version of this doc routed the scrape
+> through the Apify actor `lulzasaur/tideforecast-scraper`, which needed a token.
+> The actor was only a wrapper around a public page that fetches fine with an
+> ordinary user agent, so the script talks to the page directly. Nothing here
+> reads an `APIFY_*` variable. If you ever pasted an Apify token somewhere public,
+> rotate it in the Apify console anyway.
+
+> ⚠️ Whatever you use to refresh, it must run **outside** the React app. Anything
+> with a `VITE_` prefix is baked into the public JavaScript bundle and readable by
+> any visitor, so a scraper that needed a credential could never live in `src/`.
+
+<details>
+<summary>Height scale correction (August 2026)</summary>
+
+Data scraped before 2026-08-21 had every height **divided by 3.28** — the old
+pipeline read the page's metre figure as if it were feet and converted it. Kannur
+therefore showed a 0.04–0.48 m range where the real figure is 0.17–1.50 m. Times
+were unaffected and matched exactly, which is how the factor was identified.
+
+`scripts/refresh-tides.mjs` reads the metric value directly, so anything it writes
+is correct. But **catch reports submitted before this date carry a
+`tide_height_m` snapshot on the old, wrong scale** and are not comparable with
+newer ones — multiply those by 3.2808 to line them up.
+</details>
 
 ---
 

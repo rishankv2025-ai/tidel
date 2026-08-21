@@ -3,7 +3,7 @@ import { moonInfo } from './lib/moon.js'
 import {
   stationExtremes, heightRange, availableDays, dayKey, levelAt,
 } from './lib/tide.js'
-import { t, otherLang, otherLangLabel, placeName } from './lib/i18n.js'
+import { t, otherLang, otherLangLabel, placeName, localeFor } from './lib/i18n.js'
 import { todaySummary as summaryText } from './lib/summary.js'
 import LocationBar from './components/LocationBar.jsx'
 import TopNavigation from './components/TopNavigation.jsx'
@@ -129,6 +129,17 @@ export default function App() {
   if (!data || !selection) return <div className="app"><p className="hint">{L.loading}</p></div>
 
   const hasData = !!data.tides[selection.stationId]
+
+  // How much of the bundled tide table is still ahead of today. The window is
+  // fixed when the data is scraped, so it shrinks by a day every day. Warn while
+  // there is still time to act — silently running dry is what let a month of
+  // expiry pass unnoticed, since the app kept working with fewer days to show.
+  const daysLeft = avail.filter(k => k >= dayKey(Date.now())).length
+  const lastDay = avail.length
+    ? new Date(avail[avail.length - 1] + 'T12:00:00')
+        .toLocaleDateString(localeFor(lang), { day: 'numeric', month: 'long' })
+    : ''
+
   const effKey = selectedKey || (avail[0] || dayKey(Date.now()))
   const isToday = effKey === dayKey(Date.now())
   const refTs = isToday ? Date.now() : new Date(effKey + 'T12:00:00').getTime()
@@ -204,6 +215,8 @@ export default function App() {
         onToggleFav={toggleFav}
         lang={lang}
       />
+
+      {hasData && daysLeft < 7 && <div className="warn">{L.staleWarn(daysLeft, lastDay)}</div>}
 
       {hasData && <TopNavigation days={avail} selected={effKey} onSelect={setSelectedKey} lang={lang} />}
 

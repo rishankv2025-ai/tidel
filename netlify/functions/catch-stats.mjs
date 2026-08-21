@@ -103,7 +103,11 @@ export default async (req) => {
   const factors = [
     summarise(rows, r => r.tide_state, 'tideState'),
     summarise(rows, r => r.moon_phase, 'moonPhase'),
-    summarise(rows, r => band(r.tide_height_m, [0.2, 0.4], ['<0.2 m', '0.2–0.4 m', '0.4 m+']), 'tideHeight'),
+    // Thirds of the real Kannur range (0.17–1.50 m above MLLW). The previous
+    // 0.2/0.4 m cuts were drawn against tide heights that were all 3.28x too
+    // small, so on corrected data every report but the lowest few would pile
+    // into a single bucket and the factor would tell you nothing.
+    summarise(rows, r => band(r.tide_height_m, [0.6, 1.1], ['<0.6 m', '0.6–1.1 m', '1.1 m+']), 'tideHeight'),
     summarise(rows, r => band(r.wind_kmh, [10, 20, 30], ['<10 km/h', '10–20 km/h', '20–30 km/h', '30 km/h+']), 'wind'),
     summarise(rows, r => band(r.wave_height_m, [0.5, 1.0], ['<0.5 m', '0.5–1.0 m', '1.0 m+']), 'wave'),
     summarise(rows, r => {

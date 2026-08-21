@@ -330,10 +330,6 @@ html[lang="ml"] .tile{min-width:118px}
 /* A tile borrowed from the following day, used to fill a three-tide row.
    Dimmed and tagged so it reads as context rather than as one of this day's
    own tides — see the note in ForecastList about why some days have three. */
-.tile.nextday{opacity:.72;border-style:dashed}
-.tile .nd{display:block;font-size:.6rem;color:var(--acc);font-style:normal;
-  font-weight:700;letter-spacing:.3px;margin-top:1px}
-html[lang="ml"] .tile .nd{letter-spacing:normal;font-size:.66rem}
 
 /* ── per-report line chart ────────────────────────────────────────────────
    One series, so no legend: the heading names it. Y starts at zero because the

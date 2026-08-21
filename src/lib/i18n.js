@@ -99,8 +99,13 @@ const DICT = {
     filterHigh: 'High only',
     filterLow: 'Low only',
     noTidesFiltered: f => `No ${f} tides this day`,
-    // marks a tile borrowed from the following day to fill a 3-tide row
-    nextDay: 'next day',
+    // The bundled tide table covers a fixed window. Without this the forecast
+    // just goes quiet as the window closes, which is how a month of expiry went
+    // unnoticed — the app looked fine, it simply had fewer days to show.
+    staleWarn: (n, last) => n <= 0
+      ? 'Tide data has run out, so the forecast is empty. Refresh it (see README) to restore it.'
+      : `Only ${n} day${n === 1 ? '' : 's'} of tide data left, through ${last}. ` +
+        'Refresh it (see README) before it runs out.',
 
     // station without data
     // rendered after a bold station label, so it starts mid-sentence
@@ -405,7 +410,10 @@ const DICT = {
     filterHigh: 'വേലിയേറ്റം മാത്രം',
     filterLow: 'വേലിയിറക്കം മാത്രം',
     noTidesFiltered: f => `ഈ ദിവസം ${f} വേലിയില്ല`,
-    nextDay: 'അടുത്ത ദിവസം',
+    staleWarn: (n, last) => n <= 0
+      ? 'വേലി വിവരം തീർന്നു, അതിനാൽ പ്രവചനം ശൂന്യമാണ്. പുതുക്കുക (README കാണുക).'
+      : `വേലി വിവരം ${n} ദിവസം മാത്രം ബാക്കി (${last} വരെ). ` +
+        'തീരുന്നതിന് മുൻപ് പുതുക്കുക (README കാണുക).',
 
     // station without data
     notLoadedRest:
