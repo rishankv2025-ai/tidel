@@ -25,10 +25,37 @@ const FILE = new URL('../public/tidedata.json', import.meta.url)
 const MONTHS = ['January', 'February', 'March', 'April', 'May', 'June',
   'July', 'August', 'September', 'October', 'November', 'December']
 
-// One tide row. Written as a literal so there is no string-escaping layer.
-const ROW = /<tr[^>]*>\s*<td>(High|Low) Tide<\/td>\s*<td><b>\s*(\d{1,2}:\d{2}\s*[AP]M)<\/b><span[^>]*>\(\w+\s+(\d{1,2})\s+(\w+)\)<\/span><\/td>\s*<td[^>]*><b[^>]*>([\d.]+)\s*m<\/b>/g
+// One tide row. The last group captures the whole height cell rather than a
+// number, because which unit appears first is not fixed — see heightMetres().
+// Written as a literal so there is no string-escaping layer.
+const ROW = /<tr[^>]*>\s*<td[^>]*>(High|Low) Tide<\/td>\s*<td[^>]*><b[^>]*>\s*(\d{1,2}:\d{2}\s*[AP]M)\s*<\/b><span[^>]*>\(\w+\s+(\d{1,2})\s+(\w+)\)<\/span><\/td>\s*<td[^>]*>([\s\S]*?)<\/td>/g
 const HEADING = /(\d{1,2})\s+(\w+)\s+(20\d{2})</
 const DATUM = /Tide Datum:<\/b>\s*([^<]+)/
+
+// The height cell carries the same figure twice, metric and imperial:
+//
+//   <td ... data-units="Metric"><b ...>1.11 m</b> <span ...>(3.64 ft)</span></td>
+//
+// and which one is "primary" depends on where the request came from. A UK or
+// Indian visitor gets metres first; a US datacentre IP — a GitHub runner — gets
+// feet first. That is why the scheduled scrape parsed zero rows while the same
+// code worked from a laptop, and it is almost certainly how every height in the
+// old data file came to be divided by 3.28: the previous scraper took whichever
+// value was first and called it metres.
+//
+// So never trust position. Read the unit off the text, and convert if only feet
+// are present.
+const FT_PER_M = 3.280839895013123
+const METRES = /([\d.]+)\s*m(?![a-z])/i
+const FEET = /([\d.]+)\s*ft(?![a-z])/i
+
+function heightMetres(cell) {
+  const m = cell.match(METRES)
+  if (m) return { m: parseFloat(m[1]), converted: false }
+  const f = cell.match(FEET)
+  if (f) return { m: +(parseFloat(f[1]) / FT_PER_M).toFixed(3), converted: true }
+  return null
+}
 
 // IST is UTC+5:30 year round with no daylight saving, so a fixed offset is exact.
 const istEpochSeconds = (y, monthIdx, day, hh, mm) =>
@@ -103,11 +130,14 @@ async function scrape(slug) {
 
   const byDate = new Map()
   let rows = 0
+  let converted = 0
   for (const m of html.matchAll(ROW)) {
-    const [, type, timeRaw, dayStr, monthStr, heightStr] = m
+    const [, type, timeRaw, dayStr, monthStr, heightCell] = m
     const monthIdx = MONTHS.indexOf(monthStr)
     const hm = to24h(timeRaw)
-    if (monthIdx < 0 || !hm) continue
+    const height = heightMetres(heightCell)
+    if (monthIdx < 0 || !hm || !height) continue
+    if (height.converted) converted++
 
     // December -> January means the calendar year advanced
     if (lastMonth >= 0 && monthIdx < lastMonth) year++
@@ -119,7 +149,7 @@ async function scrape(slug) {
     if (!byDate.has(date)) byDate.set(date, [])
     byDate.get(date).push({
       t: fmt12(hm[0], hm[1]),                  // "7:01AM" — the format the app already stores
-      m: parseFloat(heightStr),
+      m: height.m,                              // always metres, whatever the page led with
       type,                                     // "High" | "Low"
       ts: istEpochSeconds(year, monthIdx, day, hm[0], hm[1]),
     })
@@ -137,7 +167,21 @@ async function scrape(slug) {
       return { date, tides }
     })
 
-  return { days, rows, datum: (html.match(DATUM) || [, 'unknown'])[1].trim() }
+  // Nothing parsed. Say why, in the log, because a scheduled run's log is all
+  // anyone gets — the last failure reported only "the page markup probably
+  // changed", which was wrong and cost a round trip to find out.
+  if (!rows) {
+    const tideWords = (html.match(/(High|Low) Tide/g) || []).length
+    const cell = (html.match(/<td[^>]*js-two-units-length-value[^>]*>[\s\S]{0,160}/) || [])[0]
+    const units = (html.match(/data-units="(\w+)"/) || [, 'unknown'])[1]
+    console.log(`  ${slug}: 0 rows parsed`)
+    console.log(`    page length      : ${html.length} bytes`)
+    console.log(`    "High/Low Tide"  : ${tideWords} occurrence(s)`)
+    console.log(`    data-units       : ${units}`)
+    console.log(`    sample height cell: ${cell ? cell.replace(/\s+/g, ' ') : '(none found)'}`)
+  }
+
+  return { days, rows, converted, datum: (html.match(DATUM) || [, 'unknown'])[1].trim() }
 }
 
 const dry = process.argv.includes('--dry')
@@ -148,8 +192,8 @@ console.log(`refreshing ${targets.length} station(s): ${targets.map(s => s.id).j
 
 let datum = ''
 for (const st of targets) {
-  const { days, rows, datum: d } = await scrape(st.slug)
-  if (!days.length) throw new Error(`${st.id}: parsed 0 tides — the page markup probably changed`)
+  const { days, rows, converted, datum: d } = await scrape(st.slug)
+  if (!days.length) throw new Error(`${st.id}: parsed 0 tides — see the diagnostics above`)
   datum = d
 
   const heights = days.flatMap(x => x.tides.map(t => t.m))
@@ -174,6 +218,7 @@ for (const st of targets) {
   console.log(`  heights ${Math.min(...heights).toFixed(2)}-${Math.max(...heights).toFixed(2)} m` +
     (oldH.length ? `   (was ${Math.min(...oldH).toFixed(2)}-${Math.max(...oldH).toFixed(2)} m)` : ''))
   console.log(`  datum: ${d}   MSL sits ${mslOffset} m above it`)
+  if (converted) console.log(`  NOTE: page served imperial; ${converted} height(s) converted from feet`)
 
   if (!dry) {
     data.tides[st.id] = days
