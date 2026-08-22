@@ -47,11 +47,55 @@ function to24h(raw) {
   return [h, Number(m[2])]
 }
 
+// The site sits behind Cloudflare, which treats a bare fetch from a datacentre
+// IP far more suspiciously than the same request from a home connection. Sending
+// the full set of headers a browser would send makes the request ordinary rather
+// than obviously scripted. This is not evasion — it is one page, a few times a
+// month, at a polite rate — it just avoids being misfiled as a bot.
+const BROWSER_HEADERS = {
+  'user-agent': UA,
+  accept: 'text/html,application/xhtml+xml,application/xml;q=0.9,image/avif,image/webp,*/*;q=0.8',
+  'accept-language': 'en-GB,en;q=0.9',
+  'cache-control': 'no-cache',
+  pragma: 'no-cache',
+  'sec-ch-ua': '"Chromium";v="140", "Not=A?Brand";v="24", "Google Chrome";v="140"',
+  'sec-ch-ua-mobile': '?0',
+  'sec-ch-ua-platform': '"Windows"',
+  'sec-fetch-dest': 'document',
+  'sec-fetch-mode': 'navigate',
+  'sec-fetch-site': 'none',
+  'sec-fetch-user': '?1',
+  'upgrade-insecure-requests': '1',
+}
+
+const sleep = ms => new Promise(r => setTimeout(r, ms))
+
+// Fetch with a couple of retries. A Cloudflare challenge often clears on a
+// second attempt, and a transient 5xx always does. On final failure the status
+// and a slice of the body go into the error, because a scheduled run that fails
+// silently is a run nobody can debug.
+async function fetchPage(url, label) {
+  let last = ''
+  for (let attempt = 1; attempt <= 3; attempt++) {
+    try {
+      const res = await fetch(url, { headers: BROWSER_HEADERS, redirect: 'follow' })
+      if (res.ok) return await res.text()
+      const body = (await res.text().catch(() => '')).replace(/\s+/g, ' ').slice(0, 200)
+      last = `HTTP ${res.status} ${res.statusText} — ${body || '(empty body)'}`
+    } catch (e) {
+      last = `${e.name}: ${e.message}`
+    }
+    if (attempt < 3) {
+      console.log(`  ${label}: attempt ${attempt} failed (${last}); retrying`)
+      await sleep(attempt * 4000)
+    }
+  }
+  throw new Error(`${label}: ${last}`)
+}
+
 async function scrape(slug) {
   const url = `https://www.tide-forecast.com/locations/${slug}/tides/latest`
-  const res = await fetch(url, { headers: { 'user-agent': UA } })
-  if (!res.ok) throw new Error(`${slug}: HTTP ${res.status}`)
-  const html = await res.text()
+  const html = await fetchPage(url, slug)
 
   const head = html.match(HEADING)
   let year = head ? Number(head[3]) : new Date().getFullYear()
