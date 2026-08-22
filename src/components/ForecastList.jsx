@@ -1,8 +1,8 @@
 import { useState } from 'react'
-import { fmtHt, availableDays, extremesForDay } from '../lib/tide.js'
+import { fmtHt, availableDays, extremesForDay, toDatum } from '../lib/tide.js'
 import { t, localeFor } from '../lib/i18n.js'
 
-export default function ForecastList({ ex, startKey, lang }) {
+export default function ForecastList({ ex, startKey, lang, datum, mslOffset }) {
   const [filter, setFilter] = useState('all')
   const [open, setOpen] = useState({})
   const L = t(lang)
@@ -62,7 +62,7 @@ export default function ForecastList({ ex, startKey, lang }) {
                   <div className={'tile ' + t2.type} key={j}>
                     <span className="tt">{t2.type === 'high' ? L.high : L.low}</span>
                     <span className="tm">{t2.disp}</span>
-                    <span className="th">{fmtHt(t2.m)}</span>
+                    <span className="th">{fmtHt(toDatum(t2.m, mslOffset, datum))}</span>
                   </div>
                 )) : <span className="ddate">{L.noTidesFiltered(filterWord(filter))}</span>}
               </div>

@@ -2,6 +2,7 @@ import { useEffect, useMemo, useState } from 'react'
 import { moonInfo } from './lib/moon.js'
 import {
   stationExtremes, heightRange, availableDays, dayKey, levelAt,
+  CHART_DATUM, MEAN_SEA_LEVEL,
 } from './lib/tide.js'
 import { t, otherLang, otherLangLabel, placeName, localeFor } from './lib/i18n.js'
 import { todaySummary as summaryText } from './lib/summary.js'
@@ -25,6 +26,11 @@ const LANG_KEY = 'tide_lang'
 // first favourite (or Kannur), silently discarding the choice — favourites were
 // remembered but the current selection never was.
 const SEL_KEY = 'tide_selection'
+// Which reference line tide heights are shown against. Defaults to mean sea
+// level, because that is what most people comparing against other tide sites
+// will recognise — small numbers, negative at low water. Chart datum (every
+// value positive) is the other choice; see toDatum() in src/lib/tide.js.
+const DATUM_KEY = 'tide_datum'
 
 // identity of a place for favourite comparison — same shape the <select> uses
 export const favKeyOf = it => `${it.stationId}|${it.label}`
@@ -53,6 +59,10 @@ export default function App() {
     const saved = localStorage.getItem(LANG_KEY)
     return saved === 'ml' || saved === 'en' ? saved : 'en'
   })
+  const [datum, setDatum] = useState(() => {
+    const saved = localStorage.getItem(DATUM_KEY)
+    return saved === CHART_DATUM || saved === MEAN_SEA_LEVEL ? saved : MEAN_SEA_LEVEL
+  })
   const [favs, setFavs] = useState(loadFavs)
   const [wx, setWx] = useState(null)   // latest weather, snapshotted into catch reports
   const [dashOpen, setDashOpen] = useState(false)
@@ -62,6 +72,10 @@ export default function App() {
     localStorage.setItem(LANG_KEY, lang)
     document.documentElement.lang = lang
   }, [lang])
+
+  useEffect(() => {
+    try { localStorage.setItem(DATUM_KEY, datum) } catch { /* private mode */ }
+  }, [datum])
 
   // Remember the chosen place across reloads.
   useEffect(() => {
@@ -114,6 +128,14 @@ export default function App() {
     if (sp) return { lat: sp.lat, lon: sp.lon }
     const st = data.stations.find(s => s.id === selection.stationId)
     return st ? { lat: st.lat, lon: st.lon } : {}
+  }, [data, selection])
+
+  // How far mean sea level sits above chart datum at this station, written into
+  // the data file by the scraper. Undefined for a station scraped before that
+  // field existed — toDatum() treats that as 0 and shows chart datum.
+  const mslOffset = useMemo(() => {
+    const st = data?.stations.find(s => s.id === selection?.stationId)
+    return st?.mslOffset ?? 0
   }, [data, selection])
 
   // keep selectedKey valid for the current station
@@ -223,7 +245,11 @@ export default function App() {
       <div className="grid">
         <MoonPhaseCard date={moonDate} lang={lang} />
         {hasData
-          ? <TideDashboardCard ex={ex} range={range} isToday={isToday} refTs={refTs} stationLabel={stationLabel} lang={lang} />
+          ? <TideDashboardCard
+              ex={ex} range={range} isToday={isToday} refTs={refTs}
+              stationLabel={stationLabel} lang={lang}
+              datum={datum} onDatum={setDatum} mslOffset={mslOffset}
+            />
           : <div className="glass pad tidecard">
               <h2 className="title">{L.tideTitle}</h2>
               <div className="warn"><b>{stationLabel}</b>{L.notLoadedRest}</div>
@@ -232,9 +258,12 @@ export default function App() {
 
       <SunMoonCard dayKey={effKey} lat={coords.lat} lon={coords.lon} lang={lang} nowMs={nowMs} />
 
-      <WeatherCard lat={coords.lat} lon={coords.lon} lang={lang} onLoad={setWx} ex={ex} place={selection.label} />
+      <WeatherCard
+        lat={coords.lat} lon={coords.lon} lang={lang} onLoad={setWx} ex={ex}
+        place={selection.label} datum={datum} mslOffset={mslOffset}
+      />
 
-      {hasData && <ForecastList ex={ex} startKey={effKey} lang={lang} />}
+      {hasData && <ForecastList ex={ex} startKey={effKey} lang={lang} datum={datum} mslOffset={mslOffset} />}
 
       <CatchReportCard
         lang={lang}
@@ -264,6 +293,8 @@ export default function App() {
         spots={data.spots}
         stations={data.stations}
         tides={data.tides}
+        datum={datum}
+        mslOffset={mslOffset}
       />
 
       {/* The source attribution and the "not for navigation" line were removed

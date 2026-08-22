@@ -127,6 +127,10 @@ h2.title{font-size:.72rem;text-transform:uppercase;letter-spacing:1.8px;color:va
 .filters{display:flex;flex-wrap:wrap;gap:8px;margin-bottom:6px}
 .filters .btn{padding:7px 12px;font-size:.8rem}
 .filters .btn.on{background:linear-gradient(90deg,var(--acc),var(--acc2));border:none;color:#04202e}
+/* Datum switch on the tide card. Reuses .filters so it reads as the same kind of
+   control as the forecast filters rather than inventing a second button style. */
+.datumsel{margin:10px 0 2px}
+.datumsel .btn{padding:6px 11px;font-size:.75rem}
 .day{border-top:1px solid var(--stroke);padding:13px 2px}
 .day:first-child{border-top:none}
 .dhead{display:flex;justify-content:space-between;align-items:center;cursor:pointer}

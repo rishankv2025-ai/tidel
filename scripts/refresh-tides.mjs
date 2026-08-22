@@ -113,14 +113,28 @@ for (const st of targets) {
   const old = data.tides[st.id] || []
   const oldH = old.flatMap(x => x.tides.map(t => t.m))
 
+  // Height of Mean Sea Level above Chart Datum, so the app can offer both
+  // references. The scraped heights are above Chart Datum (Lowest Astronomical
+  // Tide), which is why none of them is ever negative; MSL is the average level,
+  // so a reading below it goes negative.
+  //
+  // Officially MSL is averaged over a 18.6-year tidal epoch. This is the mean of
+  // every extreme in the ~29-day table, which covers a full spring/neap cycle and
+  // lands within about 0.1 m of the published figures — close enough to label a
+  // tide tile, and it is recomputed on every refresh so it tracks the data.
+  const mslOffset = +(heights.reduce((a, b) => a + b, 0) / heights.length).toFixed(3)
+
   console.log(`${st.id}`)
   console.log(`  ${rows} rows -> ${days.length} days  ${days[0].date} .. ${days[days.length - 1].date}`)
   console.log(`  tides/day ${Math.min(...perDay)}-${Math.max(...perDay)}   days with 3: ${perDay.filter(n => n === 3).length}`)
   console.log(`  heights ${Math.min(...heights).toFixed(2)}-${Math.max(...heights).toFixed(2)} m` +
     (oldH.length ? `   (was ${Math.min(...oldH).toFixed(2)}-${Math.max(...oldH).toFixed(2)} m)` : ''))
-  console.log(`  datum: ${d}`)
+  console.log(`  datum: ${d}   MSL sits ${mslOffset} m above it`)
 
-  if (!dry) data.tides[st.id] = days
+  if (!dry) {
+    data.tides[st.id] = days
+    st.mslOffset = mslOffset      // st is a reference into data.stations
+  }
 }
 
 if (dry) {

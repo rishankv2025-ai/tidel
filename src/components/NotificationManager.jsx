@@ -1,5 +1,5 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react'
-import { fmtHt, dayKey } from '../lib/tide.js'
+import { fmtHt, dayKey, toDatum } from '../lib/tide.js'
 import { t, localeFor, placeName } from '../lib/i18n.js'
 import { fetchHourly, conditionsAt } from '../lib/weather.js'
 import { notify, canNotify } from '../lib/notify.js'
@@ -38,6 +38,7 @@ const GRACE_MS = 10 * 60000
 // cannot also raise its own copy.
 export default function NotificationManager({
   ex, todaySummary, lang, lat, lon, stationId, spots = [], stations = [], tides = null,
+  datum, mslOffset,
 }) {
   const [perm, setPerm] = useState(typeof Notification !== 'undefined' ? Notification.permission : 'unsupported')
   const [rule, setRule] = useState(loadRule)
@@ -166,7 +167,7 @@ export default function NotificationManager({
         markFired(id)
         const kind = target.type === 'high' ? L.high : L.low
         notify(`${kind} — ${L.lowTideSoon}`, {
-          body: L.lowTideAt(target.disp, fmtHt(target.m)),
+          body: L.lowTideAt(target.disp, fmtHt(toDatum(target.m, mslOffset, datum))),
           tag: 'tide-alert',
         }).catch(e => console.warn('tide alert failed:', e))
       }
@@ -336,7 +337,7 @@ export default function NotificationManager({
     const kind = target.type === 'high' ? L.high : L.low
     try {
       const via = await notify(`${kind} — ${L.lowTideSoon}`, {
-        body: L.lowTideAt(target.disp, fmtHt(target.m)),
+        body: L.lowTideAt(target.disp, fmtHt(toDatum(target.m, mslOffset, datum))),
         tag: 'tide-test',            // replaces rather than stacks on repeat presses
       })
       setTestMsg({ ok: true, text: via === 'serviceworker' ? L.testShown : L.testShownDesktop })

@@ -107,16 +107,24 @@
 
 <h3>Tide times and heights <span class="tag t-static">bundled</span></h3>
 <p>The full chain, two steps removed from any authority:</p>
-<pre><code>Tide-Forecast.com  (harmonic model, heights above local chart datum)
-  → Apify actor  lulzasaur/tideforecast-scraper
-    → hand-mapped into  public/tidedata.json
+<pre><code>Tide-Forecast.com  (harmonic model, heights above Mean Lower Low Water)
+  → scripts/refresh-tides.mjs   (direct fetch, no API token)
+    → written to  public/tidedata.json
       → bundled into the build, fetched as a static file</code></pre>
 <ul>
   <li><strong>Not live.</strong> <code>App.jsx</code> fetches a file, not an API. Nothing about tides changes between data refreshes.</li>
   <li><strong>The times are strings from the scrape</strong>, not calculated. A record looks like
       <code>{"t":"3:21AM","m":0.09,"type":"Low","ts":1785102660}</code>. The app only inserts a space to make <code>3:21 AM</code>.</li>
-  <li><strong>It expires.</strong> The current file covers <strong>24 Jul → 22 Aug 2026</strong>. After that there is no tide data until the scraper is re-run.</li>
+  <li><strong>It expires.</strong> The current file covers <strong>22 Aug → 19 Sep 2026</strong>. A banner appears in the app once fewer than seven days remain, and <code>node scripts/refresh-tides.mjs</code> refreshes it.</li>
   <li><strong>This is not INCOIS</strong> and not the Indian Naval Hydrographic Office. It is a third-party site's harmonic model, scraped.</li>
+    <li><strong>Two reference lines, your choice.</strong> Heights are stored above <em>Chart Datum</em> (Lowest Astronomical Tide &mdash; the
+        lowest the water ever falls), which is why no stored height is negative. The tide card offers a switch to <em>Mean Sea Level</em>,
+        the average level, where a tide below average reads negative. Same water either way: only the line you measure from moves, so the
+        difference between any two tides is identical. The app defaults to mean sea level.
+        <br>The gap between the two is <code>stations[].mslOffset</code>, written by the scraper as the mean of every extreme in the table
+        (Kannur <strong>0.914 m</strong>, Cochin <strong>0.576 m</strong>). Officially mean sea level is averaged over a 18.6-year tidal
+        epoch; this approximates it from ~29 days, which spans a full spring/neap cycle and lands within about 0.1&nbsp;m of published
+        figures. Stored catch-report heights always use Chart Datum regardless of the display setting, so reports stay comparable.</li>
 </ul>
 <div class="warn">
   <strong>All eight local spots share one tide table.</strong> Every spot in <code>tidedata.json</code> has
@@ -415,7 +423,7 @@ would reject it.</p>
       (Full = age 13.0–16.5 days) while the date comes from an actual phase search. True full moon is at age 14.765, so the
       band is −1.77/+1.73 days wide and the card can read "Full Moon" while saying the next full moon is two days away.
       Fix: derive the name from phase proximity instead of bands.</li>
-  <li><strong>Tide data expires.</strong> The bundled file covers 24 Jul → 22 Aug 2026. Re-run the scraper before it lapses.</li>
+  <li><strong>Tide data expires.</strong> The bundled file covers 22 Aug → 19 Sep 2026. Re-run the scraper before it lapses.</li>
   <li><strong>All local spots share one tide table</strong> — switching spot changes only the label.</li>
   <li><strong>Weather cannot resolve neighbouring spots.</strong> 5–8 km grid; nearby places legitimately read identically.</li>
   <li><strong>No rate limiting anywhere.</strong> Catch reports are public and unauthenticated; anyone can submit and

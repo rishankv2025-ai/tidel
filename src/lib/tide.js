@@ -2,6 +2,24 @@
 export const TZ = 'Asia/Kolkata'
 
 export function fmtHt(v) { return (v == null ? '—' : v.toFixed(2) + ' m') }
+
+// Tide heights are stored above Chart Datum (Lowest Astronomical Tide) — the
+// lowest the water ever falls — which is why no stored height is negative.
+// Mean Sea Level is the average level, so it sits `offset` metres higher and a
+// tide below average reads negative against it. Both describe the same water;
+// only the line you measure from moves, so the difference between any two tides
+// is identical either way.
+//
+// offset comes from stations[].mslOffset, written by scripts/refresh-tides.mjs.
+// A data file predating that field yields undefined, which falls back to 0 and
+// shows Chart Datum rather than silently shifting everything to nonsense.
+export const CHART_DATUM = 'cd'
+export const MEAN_SEA_LEVEL = 'msl'
+
+export function toDatum(m, offset, datum) {
+  if (m == null) return null
+  return datum === MEAN_SEA_LEVEL ? m - (offset || 0) : m
+}
 export function fmtTime(ts) {
   return new Date(ts).toLocaleTimeString('en-IN', { hour: 'numeric', minute: '2-digit', hour12: true, timeZone: TZ })
 }

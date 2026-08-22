@@ -85,6 +85,10 @@ const DICT = {
     now: 'Now',
     atNoon: 'at 12:00',
     aboveDatum: 'above chart datum',
+    aboveMsl: 'above mean sea level',
+    // Buttons on the tide card. Kept short — they sit side by side on a phone.
+    datumMsl: 'Sea level',
+    datumChart: 'Chart datum',
     rising: '▲ Rising',
     falling: '▼ Falling',
     // segments: plain strings render as-is, {b} renders bold (styled by .nextline b)
@@ -397,6 +401,9 @@ const DICT = {
     now: 'ഇപ്പോൾ',
     atNoon: '12:00-ന്',
     aboveDatum: 'ചാർട്ട് ഡാറ്റത്തിന് മുകളിൽ',
+    aboveMsl: 'ശരാശരി സമുദ്രനിരപ്പിന് മുകളിൽ',
+    datumMsl: 'സമുദ്രനിരപ്പ്',
+    datumChart: 'ചാർട്ട് ഡാറ്റം',
     rising: '▲ കയറ്റം',
     falling: '▼ ഇറക്കം',
     nextTide: (type, time, ht) => ['അടുത്ത ', { b: type }, ' ', { b: time }, `-ന് (${ht})`],
