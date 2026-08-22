@@ -1,7 +1,12 @@
 // Tide helpers: build extremes from station days, interpolate level, format, geo.
 export const TZ = 'Asia/Kolkata'
 
-export function fmtHt(v) { return (v == null ? '—' : v.toFixed(2) + ' m') }
+// A tide sitting a few millimetres below mean sea level rounds to "-0.00 m",
+// which reads as an error rather than as zero. Collapse anything inside the
+// rounding window to a clean 0 before formatting.
+export const noNegZero = (v, dp = 2) => (Math.abs(v) < 0.5 / 10 ** dp ? 0 : v)
+
+export function fmtHt(v) { return (v == null ? '—' : noNegZero(v).toFixed(2) + ' m') }
 
 // Tide heights are stored above Chart Datum (Lowest Astronomical Tide) — the
 // lowest the water ever falls — which is why no stored height is negative.

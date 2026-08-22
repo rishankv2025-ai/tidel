@@ -103,6 +103,8 @@ const DICT = {
     filterHigh: 'High only',
     filterLow: 'Low only',
     noTidesFiltered: f => `No ${f} tides this day`,
+    // marks a tile pulled in from the following day to complete a 2-high/2-low row
+    nextDay: 'next day',
     // The bundled tide table covers a fixed window. Without this the forecast
     // just goes quiet as the window closes, which is how a month of expiry went
     // unnoticed — the app looked fine, it simply had fewer days to show.
@@ -417,6 +419,7 @@ const DICT = {
     filterHigh: 'വേലിയേറ്റം മാത്രം',
     filterLow: 'വേലിയിറക്കം മാത്രം',
     noTidesFiltered: f => `ഈ ദിവസം ${f} വേലിയില്ല`,
+    nextDay: 'അടുത്ത ദിവസം',
     staleWarn: (n, last) => n <= 0
       ? 'വേലി വിവരം തീർന്നു, അതിനാൽ പ്രവചനം ശൂന്യമാണ്. പുതുക്കുക (README കാണുക).'
       : `വേലി വിവരം ${n} ദിവസം മാത്രം ബാക്കി (${last} വരെ). ` +

@@ -2,7 +2,7 @@ import { useEffect, useMemo, useState } from 'react'
 import { fetchWeather, compass, fetchMonthWaves, monthTideStats } from '../lib/weather.js'
 import { t, localeFor } from '../lib/i18n.js'
 import { isInland } from '../lib/places.js'
-import { toDatum } from '../lib/tide.js'
+import { toDatum, noNegZero } from '../lib/tide.js'
 
 const n1 = v => (v == null ? '—' : Number(v).toFixed(1))
 const n0 = v => (v == null ? '—' : Math.round(Number(v)))
@@ -119,8 +119,8 @@ export default function WeatherCard({ lat, lon, lang, onLoad, ex, place, datum, 
                 {tideMonth && (
                   <>
                     <div className="mnlabel">🌘 {L.monthTides}</div>
-                    <div className="mnnum">{n2(tideMonth.lo)} <small>m</small></div>
-                    <div className="mnnum">{n2(tideMonth.hi)} <small>m</small></div>
+                    <div className="mnnum">{n2(noNegZero(toDatum(tideMonth.lo, mslOffset, datum)))} <small>m</small></div>
+                    <div className="mnnum">{n2(noNegZero(toDatum(tideMonth.hi, mslOffset, datum)))} <small>m</small></div>
                   </>
                 )}
                 {month && !inland && (

@@ -1,4 +1,4 @@
-import { levelAt, fmtHt, toDatum, CHART_DATUM, MEAN_SEA_LEVEL } from '../lib/tide.js'
+import { levelAt, fmtHt, toDatum, noNegZero, CHART_DATUM, MEAN_SEA_LEVEL } from '../lib/tide.js'
 import { t } from '../lib/i18n.js'
 
 const Wave = () => (
@@ -28,7 +28,7 @@ export default function TideDashboardCard({
       <h2 className="title">{L.tideTitle} — {isToday ? L.now : L.atNoon}</h2>
       <div className="tidehead">
         <div>
-          <div className="lvl">{cur ? d(cur.m).toFixed(2) : '—'} <small>m</small></div>
+          <div className="lvl">{cur ? noNegZero(d(cur.m)).toFixed(2) : '—'} <small>m</small></div>
           <div className="hint">{stationLabel} · {msl ? L.aboveMsl : L.aboveDatum}</div>
         </div>
         <span className={'chip ' + (cur && cur.rising ? 'rise' : 'fall')}>
@@ -55,7 +55,7 @@ export default function TideDashboardCard({
       </div>
 
       <div className="wavebox">
-        <span className="gauge">{d(range.min).toFixed(1)}–{d(range.max).toFixed(1)} m</span>
+        <span className="gauge">{noNegZero(d(range.min), 1).toFixed(1)}–{noNegZero(d(range.max), 1).toFixed(1)} m</span>
         <div className="water" style={{ height: pct + '%' }}>
           <div className="wave w1"><Wave /><Wave /></div>
           <div className="wave w2"><Wave /><Wave /></div>

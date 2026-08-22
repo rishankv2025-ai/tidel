@@ -127,6 +127,13 @@ h2.title{font-size:.72rem;text-transform:uppercase;letter-spacing:1.8px;color:va
 .filters{display:flex;flex-wrap:wrap;gap:8px;margin-bottom:6px}
 .filters .btn{padding:7px 12px;font-size:.8rem}
 .filters .btn.on{background:linear-gradient(90deg,var(--acc),var(--acc2));border:none;color:#04202e}
+/* A tile borrowed from the following day: dimmed and dashed so it reads as
+   belonging elsewhere even before the "next day" label is noticed. */
+.tile.nextday{opacity:.72;border-style:dashed}
+.tile .nd{display:block;font-size:.6rem;color:var(--acc);font-style:normal;
+  font-weight:700;letter-spacing:.3px;margin-top:1px}
+html[lang="ml"] .tile .nd{letter-spacing:normal;font-size:.66rem}
+
 /* Datum switch on the tide card. Reuses .filters so it reads as the same kind of
    control as the forecast filters rather than inventing a second button style. */
 .datumsel{margin:10px 0 2px}
