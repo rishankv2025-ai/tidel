@@ -10,8 +10,10 @@
 // nothing depends on build-time asset hashes. Everything is runtime-cached.
 
 // Bumped when the worker's own behaviour changes, not just the app's assets —
-// v2 adds the push and notificationclick handlers below.
-const VERSION = 'v2'
+// v2 added the push and notificationclick handlers below; v3 caches the tide
+// table fetched from the repository, which is how a scheduled refresh reaches
+// readers without a deploy.
+const VERSION = 'v3'
 const ICON = '/icons/icon-192.png'
 const SHELL = `shell-${VERSION}`     // navigations + hashed build assets
 const DATA = `data-${VERSION}`       // tidedata.json
@@ -143,6 +145,30 @@ self.addEventListener('fetch', event => {
           (await caches.match('/tidedata.json'))
         if (hit) return hit
         return new Response('{}', { status: 503, headers: { 'content-type': 'application/json' } })
+      }
+    })())
+    return
+  }
+
+  // The same table, read from the repository so a scheduled refresh reaches
+  // readers without a deploy — see src/lib/tidedata.js. Network-first with a
+  // cached fallback, so the newest copy this device has ever seen survives
+  // offline; the app then keeps whichever of the two copies is newer.
+  if (url.hostname === 'raw.githubusercontent.com' && url.pathname.endsWith('tidedata.json')) {
+    event.respondWith((async () => {
+      const cache = await caches.open(DATA)
+      try {
+        const fresh = await fetch(request)
+        if (fresh.ok) cache.put(request, fresh.clone())
+        return fresh
+      } catch {
+        const hit = await cache.match(request)
+        if (hit) return hit
+        // Reject rather than return an empty body. The loader treats a rejection
+        // as "no remote copy" and keeps the bundled table, which is the correct
+        // degradation; a 200 with {} would fail its shape check anyway, but this
+        // is clearer about what happened.
+        return Response.error()
       }
     })())
     return

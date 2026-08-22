@@ -1,0 +1,81 @@
+# Keeps the tide table from expiring, without anyone having to remember.
+#
+# The table covers a fixed ~29-day window from the moment it is scraped, so it
+# shrinks by a day every day. Left alone it empties, which is exactly what
+# happened in August: the app kept working while quietly running out of days.
+#
+# This re-scrapes weekly and commits the result. The app reads the committed file
+# directly from the repository at runtime (src/lib/tidedata.js), so readers get
+# the new window within minutes — no Netlify build, and therefore no build
+# credits, which is what blocked the manual fix last time.
+#
+# The commit message carries [skip ci] so Netlify does not rebuild on it. The
+# bundled copy still refreshes on the next real deploy, whenever that happens.
+
+name: Refresh tide data
+
+on:
+  schedule:
+    # Mondays 03:17 UTC (08:47 IST). Off the hour on purpose: GitHub delays runs
+    # scheduled at popular round times, sometimes by a lot.
+    - cron: '17 3 * * 1'
+  workflow_dispatch:        # lets you run it by hand from the Actions tab
+
+permissions:
+  contents: write
+
+concurrency:
+  group: refresh-tides
+  cancel-in-progress: false
+
+jobs:
+  refresh:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'      # global fetch(); the scraper has no dependencies
+
+      - name: Scrape Tide-Forecast
+        run: node scripts/refresh-tides.mjs
+
+      - name: Sanity-check the result before committing
+        # A parse that half-succeeded is worse than not refreshing at all: it
+        # would replace a working table with a broken one for every reader.
+        run: |
+          node -e "
+          const d = require('./public/tidedata.json');
+          const today = new Date().toLocaleDateString('en-CA', { timeZone: 'Asia/Kolkata' });
+          let bad = 0;
+          for (const st of d.stations.filter(s => s.hasData)) {
+            const days = d.tides[st.id] || [];
+            const ahead = days.map(x => x.date).filter(x => x >= today).length;
+            const tides = days.flatMap(x => x.tides);
+            const heights = tides.map(t => t.m);
+            console.log(st.id + ': ' + days.length + ' days, ' + ahead + ' ahead, '
+              + tides.length + ' tides, ' + Math.min(...heights) + '-' + Math.max(...heights) + ' m'
+              + ', mslOffset ' + st.mslOffset);
+            if (ahead < 14) { console.error('  FAIL: fewer than 14 days ahead'); bad++; }
+            if (tides.length < 50) { console.error('  FAIL: implausibly few tides'); bad++; }
+            if (!(st.mslOffset > 0)) { console.error('  FAIL: missing mslOffset'); bad++; }
+            if (tides.some(t => !(t.m > 0) || !(t.ts > 0) || !/^\d{1,2}:\d{2}(AM|PM)$/.test(t.t))) {
+              console.error('  FAIL: malformed tide record'); bad++;
+            }
+          }
+          if (bad) process.exit(1);
+          "
+
+      - name: Commit if the table changed
+        run: |
+          if git diff --quiet -- public/tidedata.json; then
+            echo "Tide table unchanged — nothing to commit."
+            exit 0
+          fi
+          git config user.name  "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add public/tidedata.json
+          git commit -m "Refresh tide data (automated) [skip ci]"
+          git push
+          echo "Pushed a refreshed tide table."

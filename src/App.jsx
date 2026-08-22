@@ -5,6 +5,7 @@ import {
   CHART_DATUM, MEAN_SEA_LEVEL,
 } from './lib/tide.js'
 import { t, otherLang, otherLangLabel, placeName, localeFor } from './lib/i18n.js'
+import { fetchBundled, fetchRemote, isNewer } from './lib/tidedata.js'
 import { todaySummary as summaryText } from './lib/summary.js'
 import LocationBar from './components/LocationBar.jsx'
 import TopNavigation from './components/TopNavigation.jsx'
@@ -50,6 +51,28 @@ function loadFavs() {
   return []
 }
 
+// Restore the last picked place, then fall back to the first favourite, then the
+// first spot. The saved value is re-checked against the dataset rather than
+// trusted: a spot renamed or dropped by a data refresh would otherwise leave the
+// app pointing at a station that no longer exists.
+function pickInitialSelection(d, favs) {
+  let saved = null
+  try {
+    const raw = JSON.parse(localStorage.getItem(SEL_KEY) || 'null')
+    if (raw && raw.stationId && raw.label) {
+      const known = d.spots.some(p => p.name === raw.label && p.station === raw.stationId) ||
+        d.stations.some(s => s.id === raw.stationId && s.name === raw.label) ||
+        // a GPS pick is labelled "<station> (nearest)" and is not in the lists
+        (raw.kind === 'station' && d.stations.some(s => s.id === raw.stationId))
+      if (known) saved = raw
+    }
+  } catch { /* corrupt storage — fall through to the defaults */ }
+
+  const s0 = d.spots[0]
+  return saved || favs[0] ||
+    { stationId: s0.station, label: s0.name, ml: s0.ml, lat: s0.lat, lon: s0.lon }
+}
+
 export default function App() {
   const [data, setData] = useState(null)
   const [err, setErr] = useState('')
@@ -83,33 +106,31 @@ export default function App() {
     try { localStorage.setItem(SEL_KEY, JSON.stringify(selection)) } catch { /* private mode */ }
   }, [selection])
 
+  // Two sources, newest wins — see src/lib/tidedata.js. The bundled copy renders
+  // immediately so there is no waiting on the network, and the remote copy
+  // replaces it a moment later if a scheduled refresh has produced a newer table.
+  // That is what lets the tide window extend without a redeploy.
   useEffect(() => {
-    fetch(`${import.meta.env.BASE_URL}tidedata.json`)
-      .then(r => { if (!r.ok) throw new Error('HTTP ' + r.status); return r.json() })
-      .then(d => {
-        setData(d)
-        const s0 = d.spots[0]
-        // Restore the last picked place, then fall back to the first favourite,
-        // then the first spot. The saved value is re-checked against the dataset
-        // rather than trusted: a spot renamed or dropped by a data refresh would
-        // otherwise leave the app pointing at a station that no longer exists.
-        let saved = null
-        try {
-          const raw = JSON.parse(localStorage.getItem(SEL_KEY) || 'null')
-          if (raw && raw.stationId && raw.label) {
-            const known = d.spots.some(p => p.name === raw.label && p.station === raw.stationId) ||
-              d.stations.some(s => s.id === raw.stationId && s.name === raw.label) ||
-              // a GPS pick is labelled "<station> (nearest)" and is not in the lists
-              (raw.kind === 'station' && d.stations.some(s => s.id === raw.stationId))
-            if (known) saved = raw
-          }
-        } catch { /* corrupt storage — fall through to the defaults */ }
+    let live = true
+    let best = null
 
-        const first = saved || favs[0] ||
-          { stationId: s0.station, label: s0.name, ml: s0.ml, lat: s0.lat, lon: s0.lon }
-        setSelection(first)
-      })
-      .catch(e => setErr(e.message))
+    const apply = d => {
+      if (!live || !isNewer(d, best)) return
+      best = d
+      setData(d)
+      // Only choose a place the first time. A later remote upgrade must not yank
+      // the reader back to a default while they are looking at somewhere else.
+      setSelection(prev => prev || pickInitialSelection(d, favs))
+    }
+
+    fetchBundled().then(apply).catch(e => { if (live && !best) setErr(e.message) })
+    fetchRemote().then(d => {
+      if (d) apply(d)
+      // Nothing bundled and nothing remote is the only true failure, and the
+      // bundled catch above has already reported it.
+    })
+
+    return () => { live = false }
   }, [])
 
   const ex = useMemo(
